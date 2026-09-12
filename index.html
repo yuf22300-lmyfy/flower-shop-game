@@ -94,7 +94,7 @@ body{
   padding:12px;overflow-y:auto;max-height:calc(100vh - 215px);font-size:14px}
 #panel h4{font-size:13px;color:var(--ink2);margin:10px 0 6px;font-weight:700;letter-spacing:1px}
 .potgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.pot{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:8px 6px;text-align:center;cursor:pointer}
+.pot{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:8px 6px;text-align:center;cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28'%3E%3Cpath d='M5 11h11v7a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4z' fill='%237d9b72' stroke='%235c7a55' stroke-width='1.5'/%3E%3Cpath d='M16 12l7-5 2.5 3.5-8 5z' fill='%23c9856a'/%3E%3Ccircle cx='6.5' cy='8' r='1.6' fill='%235a8ab8'/%3E%3Ccircle cx='11' cy='6' r='1.3' fill='%235a8ab8'/%3E%3C/svg%3E") 6 6, pointer}
 .pot:hover{border-color:var(--sage)}
 .pot .ic{height:52px;display:flex;align-items:flex-end;justify-content:center}
 .pot .nm{font-size:13px;font-weight:700;margin-top:3px}
@@ -102,6 +102,19 @@ body{
 .pot.ready{border-color:var(--gold);box-shadow:0 0 6px rgba(189,146,69,.35)}
 .pot.dry{border-color:#c9856a}
 .pot.mate{border-color:var(--sage);box-shadow:0 0 6px rgba(125,155,114,.4)}
+.pot.fx{border-color:#7cc4b2}
+.pot.fx .ic{filter:drop-shadow(0 0 4px rgba(124,196,178,.85))}
+.pot .st b.pk{display:inline-block;color:#9a3f26;background:#f9e7c0;border-radius:4px;padding:0 5px;font-weight:800;margin:1px 0}
+.pot .st b.wet{color:#3f6f8a}
+#bigToast{position:fixed;left:50%;top:42%;transform:translate(-50%,-50%);z-index:80;
+  background:rgba(61,53,41,.93);color:#faf3e3;padding:14px 28px;border-radius:14px;font-size:19px;
+  font-family:"Microsoft YaHei",sans-serif;box-shadow:0 8px 30px rgba(0,0,0,.35);pointer-events:none;
+  animation:fadein .3s}
+body.shop2{--line:#d3c096;--paper:#fbf4e4}
+body.shop3{--line:#c9b183;--card:#fffef8;--acc2:#9a3f26}
+body.shop4{--line:#c2a86f;--gold:#caa14e;--bg:#f2e6cc}
+#growBar{height:8px;background:#e8dcc2;border-radius:5px;overflow:hidden;margin:6px 0}
+#growBar i{display:block;height:100%;background:linear-gradient(90deg,var(--sage),var(--gold));border-radius:5px}
 .row{display:flex;align-items:center;gap:8px;background:var(--paper);border:1px solid var(--line);
   border-radius:10px;padding:8px 10px;margin-bottom:8px}
 .row .grow{flex:1;min-width:0}
@@ -267,32 +280,32 @@ function clone(o){var r={},k;for(k in o)if(has(o,k))r[k]=o[k];return r}
 /* ================= 植物图鉴 ================= */
 /* ic:{f:花形 c:花色 s:茎叶色} f: clump草簇 frond蕨叶 bell铃兰 trump喇叭 spike刺球 star星芒 bulb灯泡 vine藤 droop垂枝 */
 var PLANTS={
- moss:{n:'发光苔藓',t:0,r:1,d:'一小片幽幽的绿光,夜里能照亮半张桌子。',ic:{f:'clump',c:'#9fe08a',s:'#6fae7f'}},
- fern:{n:'铁线蕨',t:0,r:1,d:'叶子细得像铅笔稿,却怎么压都压不坏。',ic:{f:'frond',c:'#7fae8a',s:'#4f7a5c'}},
- horn:{n:'喇叭花',t:0,r:1,d:'清晨朝着太阳吹无声的号,午后悄悄合上。',ic:{f:'trump',c:'#e8875a',s:'#6f9a5f'}},
- cact:{n:'多刺仙人掌',t:0,r:1,d:'浑身是刺,开的花却软得像一句晚安。',ic:{f:'spike',c:'#8fb573',s:'#6d9460'}},
- viol:{n:'紫罗兰',t:0,r:1,d:'废土上最固执的香气,有人闻了会突然安静。',ic:{f:'bell',c:'#9a7ab8',s:'#5f8a5f'}},
- myst:{n:'神秘种子',t:0,r:5,d:'不知道会长出什么。种它的人都有点贪心,或者有点寂寞。',ic:{f:'star',c:'#c9b458',s:'#8a9a6f'}},
- lant:{n:'夜光灯笼',t:1,r:2,d:'雾再大,它也亮着。有它在,辐射雾天也能开门做生意。',ic:{f:'bulb',c:'#ffd97a',s:'#7d9b72'},fx:'fogOpen'},
- echo:{n:'回声花',t:1,r:3,d:'会把附近的声响存起来,慢慢放给你听。偶尔,放出的不是这里的声音。',ic:{f:'bell',c:'#a8c4c9',s:'#6f9a8a'},fx:'echo'},
- vine:{n:'净水藤',t:1,r:4,d:'藤蔓里滤出清亮的水,每天存下两罐——到花架上点它「采收」。',ic:{f:'vine',c:'#8ad0c0',s:'#5f9a80'},fx:'water2'},
- mem:{n:'记忆花',t:1,r:4,d:'凑近去闻,会想起一些不属于你的事。',ic:{f:'star',c:'#c9a1c4',s:'#7a8a6f'},fx:'sniff'},
- cotton:{n:'柔刺棉',t:1,r:3,d:'刺是软的,棉是暖的。每三天结出一块防辐射布。',ic:{f:'clump',c:'#e8e0d0',s:'#8aa578'},fx:'cloth'},
- star:{n:'星尘苔藓',t:1,r:2,d:'入夜后撒出细碎的光点,夜里店里的温柔翻倍。',ic:{f:'clump',c:'#b8d0e8',s:'#7d9b72'},fx:'night2'},
- ring:{n:'鸣响果',t:1,r:3,d:'敲一下,咚——像很远的地方有人应了一声。乐手见了走不动路。',ic:{f:'bulb',c:'#d9a05a',s:'#6f9a5f'},fx:'gift5music'},
- prism:{n:'彩光刺',t:1,r:3,d:'刺尖上折出七种颜色,收藏家愿意为一眼走十里废土。',ic:{f:'spike',c:'#e8a1b8',s:'#6d9460'},fx:'collector'},
- needle:{n:'指针花',t:2,r:4,d:'无论怎么转盆,花永远指着同一个方向。那边什么都没有。',ic:{f:'star',c:'#cfd8bc',s:'#8a9a6f'},fx:'point'},
- tomato:{n:'会说话的番茄',t:2,r:5,d:'每天说一句俏皮话。它觉得自己是店里真正的店长。',ic:{f:'trump',c:'#e05a4a',s:'#6f9a5f'},fx:'quip'},
- bulb:{n:'灯泡藤蔓',t:2,r:3,d:'结出的果实真的会亮。停电的废土,它是最小的太阳。',ic:{f:'bulb',c:'#ffe89a',s:'#8aa578'},fx:'light'},
- choco:{n:'巧克力土',t:2,r:3,d:'土壤散发着甜味。小孩和某些大人为它排队。',ic:{f:'clump',c:'#a5795a',s:'#8a7a6f'},fx:'sweet'},
- pencil:{n:'铅笔树',t:2,r:3,d:'枝条削一削就能写。写下来的东西,好像更真一点。',ic:{f:'spike',c:'#d9c08a',s:'#7d8a5f'},fx:'diaryUp'},
- silence:{n:'静默草',t:2,r:3,d:'不结果不开花,只是安静。旁边的植物却长得飞快。',ic:{f:'frond',c:'#b8c4b0',s:'#8a9a7f'},fx:'haste'},
- sad:{n:'悲伤藤',t:2,r:2,d:'结出小瓶盐水。旁边的植物会陪它一起安静下来。',ic:{f:'droop',c:'#8a9ab8',s:'#6f7a8f'},fx:'salt'},
- lace:{n:'蕾丝帘',t:1,r:3,d:'垂下细密的叶帘。帘子后面的客人,愿意多说一句心里话。',ic:{f:'droop',c:'#d0e0c0',s:'#6f9a6f'},fx:'stay'},
- pin:{n:'针灯球',t:1,r:2,d:'圆滚滚的小刺球,入夜亮起一圈暖黄的光晕。',ic:{f:'bulb',c:'#ffd9a0',s:'#8fb573'},fx:'night1'},
- dream:{n:'梦境提灯',t:1,r:5,d:'提着它闻记忆花,想起的事会清楚得像刚刚发生。',ic:{f:'bulb',c:'#e8c9e0',s:'#7d9b72'},fx:'dream'},
- chime:{n:'潺潺铃',t:1,r:3,d:'过滤水的声音被它存成了铃音。傍晚听一听,心里也滤了一遍。',ic:{f:'bell',c:'#a8e0d0',s:'#5f9a80'},fx:'chime'},
- lily:{n:'低语铃兰',t:1,r:4,d:'只对很熟的人低头。低头时说的那句话,值得等很多天。',ic:{f:'bell',c:'#f0e8b8',s:'#6f9a6f'},fx:'whisper'}
+ moss:{n:'发光苔藓',t:0,r:1,d:'一小片幽幽的绿光,夜里能照亮半张桌子。',use:'夜里照明;出产发光苔片(花礼);杂交亲本',ic:{f:'clump',c:'#9fe08a',s:'#6fae7f'}},
+ fern:{n:'铁线蕨',t:0,r:1,d:'叶子细得像铅笔稿,却怎么压都压不坏。',use:'最娇气,两天不浇就枯;出产蕨叶(花礼);杂交亲本',ic:{f:'frond',c:'#7fae8a',s:'#4f7a5c'}},
+ horn:{n:'喇叭花',t:0,r:1,d:'清晨朝着太阳吹无声的号,午后悄悄合上。',use:'出产喇叭花苞(食物);杂交亲本',ic:{f:'trump',c:'#e8875a',s:'#6f9a5f'}},
+ cact:{n:'多刺仙人掌',t:0,r:1,d:'浑身是刺,开的花却软得像一句晚安。',use:'最耐旱(六天);出产仙人掌果(食物);杂交亲本',ic:{f:'spike',c:'#8fb573',s:'#6d9460'}},
+ viol:{n:'紫罗兰',t:0,r:1,d:'废土上最固执的香气,有人闻了会突然安静。',use:'多数客人的心头好;出产紫罗兰花束;杂交亲本',ic:{f:'bell',c:'#9a7ab8',s:'#5f8a5f'}},
+ myst:{n:'神秘种子',t:0,r:5,d:'不知道会长出什么。种它的人都有点贪心,或者有点寂寞。',use:'成熟时随机突变成七种奇花之一',ic:{f:'star',c:'#c9b458',s:'#8a9a6f'}},
+ lant:{n:'夜光灯笼',t:1,r:2,d:'雾再大,它也亮着。有它在,辐射雾天也能开门做生意。',use:'功能花:雾天也能营业',ic:{f:'bulb',c:'#ffd97a',s:'#7d9b72'},fx:'fogOpen'},
+ echo:{n:'回声花',t:1,r:3,d:'会把附近的声响存起来,慢慢放给你听。偶尔,放出的不是这里的声音。',use:'功能花:早晨可听回声,偶尔听见真相碎片',ic:{f:'bell',c:'#a8c4c9',s:'#6f9a8a'},fx:'echo'},
+ vine:{n:'净水藤',t:1,r:4,d:'藤蔓里滤出清亮的水,每天存下两罐——到花架上点它「采收」。',use:'功能花:采收可得净水两罐',ic:{f:'vine',c:'#8ad0c0',s:'#5f9a80'},fx:'water2'},
+ mem:{n:'记忆花',t:1,r:4,d:'凑近去闻,会想起一些不属于你的事。',use:'功能花:早晨可闻,获得真相碎片',ic:{f:'star',c:'#c9a1c4',s:'#7a8a6f'},fx:'sniff'},
+ cotton:{n:'柔刺棉',t:1,r:3,d:'刺是软的,棉是暖的。每三天结出一块防辐射布。',use:'功能花:出产防辐射布',ic:{f:'clump',c:'#e8e0d0',s:'#8aa578'},fx:'cloth'},
+ star:{n:'星尘苔藓',t:1,r:2,d:'入夜后撒出细碎的光点,夜里店里的温柔翻倍。',use:'功能花:每夜氛围值+2',ic:{f:'clump',c:'#b8d0e8',s:'#7d9b72'},fx:'night2'},
+ ring:{n:'鸣响果',t:1,r:3,d:'敲一下,咚——像很远的地方有人应了一声。乐手见了走不动路。',use:'功能花:出产鸣响果,乐手的最爱',ic:{f:'bulb',c:'#d9a05a',s:'#6f9a5f'},fx:'gift5music'},
+ prism:{n:'彩光刺',t:1,r:3,d:'刺尖上折出七种颜色,收藏家愿意为一眼走十里废土。',use:'功能花:吸引薇拉更常来',ic:{f:'spike',c:'#e8a1b8',s:'#6d9460'},fx:'collector'},
+ needle:{n:'指针花',t:2,r:4,d:'无论怎么转盆,花永远指着同一个方向。那边什么都没有。',use:'功能花:一直指着西边(暗线)',ic:{f:'star',c:'#cfd8bc',s:'#8a9a6f'},fx:'point'},
+ tomato:{n:'会说话的番茄',t:2,r:5,d:'每天说一句俏皮话。它觉得自己是店里真正的店长。',use:'功能花:每天一句俏皮话;出产俏皮果',ic:{f:'trump',c:'#e05a4a',s:'#6f9a5f'},fx:'quip'},
+ bulb:{n:'灯泡藤蔓',t:2,r:3,d:'结出的果实真的会亮。停电的废土,它是最小的太阳。',use:'功能花:出产小灯泡(小礼物)',ic:{f:'bulb',c:'#ffe89a',s:'#8aa578'},fx:'light'},
+ choco:{n:'巧克力土',t:2,r:3,d:'土壤散发着甜味。小孩和某些大人为它排队。',use:'功能花:吸引纽拉更常来;产甜土',ic:{f:'clump',c:'#a5795a',s:'#8a7a6f'},fx:'sweet'},
+ pencil:{n:'铅笔树',t:2,r:3,d:'枝条削一削就能写。写下来的东西,好像更真一点。',use:'功能花:出产手削铅笔(写日记必备)',ic:{f:'spike',c:'#d9c08a',s:'#7d8a5f'},fx:'diaryUp'},
+ silence:{n:'静默草',t:2,r:3,d:'不结果不开花,只是安静。旁边的植物却长得飞快。',use:'功能花:让邻居长得更快',ic:{f:'frond',c:'#b8c4b0',s:'#8a9a7f'},fx:'haste'},
+ sad:{n:'悲伤藤',t:2,r:2,d:'结出小瓶盐水。旁边的植物会陪它一起安静下来。',use:'功能花:出产盐水;邻居长得慢',ic:{f:'droop',c:'#8a9ab8',s:'#6f7a8f'},fx:'salt'},
+ lace:{n:'蕾丝帘',t:1,r:3,d:'垂下细密的叶帘。帘子后面的客人,愿意多说一句心里话。',use:'功能花:客人更愿意说心里话',ic:{f:'droop',c:'#d0e0c0',s:'#6f9a6f'},fx:'stay'},
+ pin:{n:'针灯球',t:1,r:2,d:'圆滚滚的小刺球,入夜亮起一圈暖黄的光晕。',use:'功能花:每夜氛围值+1',ic:{f:'bulb',c:'#ffd9a0',s:'#8fb573'},fx:'night1'},
+ dream:{n:'梦境提灯',t:1,r:5,d:'提着它闻记忆花,想起的事会清楚得像刚刚发生。',use:'功能花:闻记忆花时,记忆更清晰',ic:{f:'bulb',c:'#e8c9e0',s:'#7d9b72'},fx:'dream'},
+ chime:{n:'潺潺铃',t:1,r:3,d:'过滤水的声音被它存成了铃音。傍晚听一听,心里也滤了一遍。',use:'功能花:采收可得净水一罐',ic:{f:'bell',c:'#a8e0d0',s:'#5f9a80'},fx:'chime'},
+ lily:{n:'低语铃兰',t:1,r:4,d:'只对很熟的人低头。低头时说的那句话,值得等很多天。',use:'功能花:高好感客人临别赠言',ic:{f:'bell',c:'#f0e8b8',s:'#6f9a6f'},fx:'whisper'}
 };
 /* ================= 杂交配方(14) ================= */
 var HYBRIDS=[
@@ -801,11 +814,36 @@ var ATMO_UNLOCKS=[
  {v:800,k:'cabinet',n:'旧物展示柜',d:'打了一只旧物展示柜。路过的客人,总会在它面前想起什么(+真相碎片)。'},
  {v:1200,k:'yard',n:'后院',d:'推开后门——一小片后院。鸡窝、树苗、一汪小水塘。'}
 ];
+var SHOP_TIERS=[
+ {v:0,n:'破旧的小花棚',cls:''},
+ {v:60,n:'整洁的小花店',cls:'shop2'},
+ {v:200,n:'温馨的花坊',cls:'shop3'},
+ {v:450,n:'镇上有名的花店',cls:'shop4'}
+];
+function shopLevel(){var lv=1,i;for(i=0;i<SHOP_TIERS.length;i++){if(S.atmo>=SHOP_TIERS[i].v)lv=i+1}return lv}
+function applyShopTier(){
+ var lv=shopLevel(),cls=SHOP_TIERS[lv-1].cls,i;
+ var keep='';
+ var body=document.body;
+ if(body.className.indexOf('sheet-open')>=0)keep=' sheet-open';
+ body.className=cls+keep;
+}
+var TUTORIAL={
+ 1:'花要每天浇水(雨天免)。到右侧「花架」点每盆花可以单独照料;空盆可以下种。',
+ 2:'客人进门先看 TA「想要」什么——用背包里的东西以物易物;今天的交换还能「交涉」一次,换个更好的价钱。',
+ 3:'花成熟后点击花盆「采摘」。一颗种子一生只开一次花——采完盆就空了,不过有六成概率在根下留种,记得补种。',
+ 4:'相邻的两盆成熟花可以「授粉」。图鉴只记你亲手试出来的配方;拿不准,就用东西向帕维尔先生换一条「育种情报」。',
+ 5:'水是命脉:雨天接水、散步找水、净水藤/潺潺铃产水——给花架留两手准备,别等叶子垂了才着急。',
+ 6:'氛围值攒够,小店会自己变好:招牌、房间、后院都会来。经营得越用心,店就越不像「破旧的小花棚」。'
+};
+function tutorialHint(d){return TUTORIAL[d]||''}
+var FLOWERPICK={pu:'purple',baba:'purple',sasha:'petals',vera:'fermleaf',ivan:'mosspack',pavel:'mosspack',nyura:'purple'};
+var FLOWER_CATS=['flower','purple','nyura'];
 function newState(){
  var f={},k;for(k in CUST)f[k]={lv:1,pts:0,seen:0,met:0};
- return{ver:2,day:1,phase:0,weather:'clear',baro:null,
+ return{ver:3,day:1,phase:0,weather:'clear',baro:null,
  water:8,parts:3,seeds:3,myst:1,seedBag:{},
- atmo:0,unlocked:{},shopName:'',named:false,
+ atmo:0,unlocked:{},shopName:'',named:false,shopLv:1,knowHyb:{},
  pots:[{pl:'moss',st:2,w:1},{pl:'fern',st:2,w:1},{pl:'viol',st:2,w:1},{pl:'horn',st:1,w:1},null,null],potCap:6,
  inv:[{id:'petals',q:1},{id:'food',q:1}],invCap:10,
  relicsFound:[],relicOrder:[],relicFixed:[],relicFailed:[],excluded:{},
@@ -813,7 +851,7 @@ function newState(){
  fav:f,clues:[],frags:[],flags:{},
  cat:false,catName:'',dog:false,tape:false,
  diary:[],newsN:0,walks:0,cottonTick:0,sadTick:0,cabTick:0,logTick:0,
- script:{},tradeToday:{},giftToday:{},letterPending:false,diaryToday:false,
+ script:{},tradeToday:{},giftToday:{},negoToday:0,negoBonus:{},dayT:{picks:0,trade:0},letterPending:false,diaryToday:false,
  pursue:null,pursuit:0,choice29:false,ended:null,endless:false,sealed:false,storyteller:false,
  counters:{fixed:0,hyb:0,quip:0,trade:0,plants:4,watered:0,fragBy:0,deaths:0,picks:0},
  summary:{},testMode:false};
@@ -831,6 +869,13 @@ function who(cid){return '<span class="who" style="background:'+CUST[cid].col+'"
 function say(cid,t){msg(who(cid)+esc(t),'say')}
 function artMsg(svg){msg('<div class="art">'+svg+'</div>')}
 function daymark(t){var d=document.createElement('div');d.className='daymark';d.innerHTML=esc(t);$('log').appendChild(d);$('log').scrollTop=$('log').scrollHeight}
+function bigToast(t){ // 居中大提醒(浇水等关键反馈)
+ window.__lastToast=t;
+ if(TEST)return;
+ var d=document.createElement('div');d.id='bigToast';d.innerHTML=esc(t);
+ document.body.appendChild(d);
+ setTimeout(function(){if(d.parentNode)d.parentNode.removeChild(d)},1900);
+}
 var CHOICE_REFRESH=null;
 function tryRefreshChoices(){if(TEST)return;if(CHOICE_REFRESH)CHOICE_REFRESH()}
 function setChoices(tip,arr,cb){
@@ -862,7 +907,10 @@ function updHud(){
 }
 /* ================= 背包 ================= */
 function invCount(){var n=0,i;for(i=0;i<S.inv.length;i++)n+=S.inv[i].q;return n}
-function addItem(id,q){q=q||1;var i;for(i=0;i<S.inv.length;i++)if(S.inv[i].id===id){S.inv[i].q+=q;refreshPanel();updHud();tryRefreshChoices();return true}
+function addItem(id,q){q=q||1;var i;
+ for(i=0;i<S.inv.length;i++)if(S.inv[i].id===id){
+  if(invCount()+q>S.invCap){gain('背包满了,叠不下啦。多出来的你只好拆成零件收好。(+零件×'+q+')');S.parts+=q;refreshPanel();updHud();return false}
+  S.inv[i].q+=q;refreshPanel();updHud();tryRefreshChoices();return true}
  if(invCount()+q>S.invCap){gain('背包满了。你只好把多出来的东西拆成零件收好。(+零件×'+q+')');S.parts+=q;refreshPanel();updHud();return false}
  S.inv.push({id:id,q:q});refreshPanel();updHud();tryRefreshChoices();return true}
 function hasCat(cat){var i;for(i=0;i<S.inv.length;i++){var it=ITEMS[S.inv[i].id];if(it&&it.cat===cat&&S.inv[i].q>0)return S.inv[i].id}return null}
@@ -877,6 +925,17 @@ function atmoGain(n){
    if(u.k==='room2'||u.k==='yard'){S.potCap=(u.k==='room2')?12:18;fixPotLen()}
    if(u.k==='cabinet')S.invCap+=4;
    if(u.k==='shopname')nameShop();}}
+ var nlv=shopLevel();
+ if(nlv>(S.shopLv||1)){
+  S.shopLv=nlv;applyShopTier();AU.warm();
+  var tiers=[
+   '',
+   '',
+   '你把歪掉的招牌扶正,擦净了窗玻璃,又给门口垫了块平整的石板——小店第一次有了「整洁」的样子。【小店升级:整洁的小花店】',
+   '暖炉、挂灯、擦得发亮的旧物柜——推门进来的人,会先深吸一口气。【小店升级:温馨的花坊】',
+   '连隔壁镇的人都专程绕路来买一束花。门口的台阶,被踩得发亮。【小店升级:镇上有名的花店】'];
+  narr(tiers[nlv]||'');
+ }
  updHud();refreshPanel();
 }
 function nameShop(){
@@ -895,32 +954,44 @@ function plantPot(pid,tag,slot){ // slot: 指定槽位(空位所在);缺省则�
  else{var i;for(i=0;i<S.pots.length;i++){if(!S.pots[i]){ix=i;break}}}
  if(ix<0){if(S.pots.length>=S.potCap){gain('花架满了,没有空盆。');return false}ix=S.pots.length}
  while(S.pots.length<=ix)S.pots.push(null);
- S.pots[ix]={pl:pid,st:0,tag:tag||'',t:0,w:(S.weather==='rain'?1:0)};S.counters.plants++;refreshPanel();return true}
+ S.pots[ix]={pl:pid,st:0,tag:tag||'',t:0,w:(S.weather==='rain'?2:1)};S.counters.plants++;refreshPanel();return true}
+function rainFill(){var i;for(i=0;i<S.pots.length;i++){if(S.pots[i]&&S.pots[i].pl){S.pots[i].w=2;S.pots[i].miss=0}}}
+function waterOne(i,n){ // 单独浇水:可控制水量(1份撑一天,2份撑两天)
+ var p=S.pots[i];n=n||1;
+ if(!p||!p.pl)return false;
+ if(S.water<n){noWater();return false}
+ S.water-=n;p.w=n;p.miss=0;
+ narr('你给'+PLANTS[p.pl].n+(n>1?'足足浇了两份水,盆底渗出细流。':'细细浇了一份水。'));
+ bigToast('💧 '+PLANTS[p.pl].n+' 喝饱了 · 水分可撑 '+n+' 天(剩净水 '+S.water+')');
+ S.counters.watered++;refreshPanel();updHud();save();return true;
+}
 function waterAll(){
  var cost=S.tools.funn?1:2;if(S.water<cost){return noWater()}
- var i,any=0;for(i=0;i<S.pots.length;i++){if(S.pots[i]&&S.pots[i].pl&&!S.pots[i].w){S.pots[i].w=1;any=1}}
+ var i,any=0;for(i=0;i<S.pots.length;i++){if(S.pots[i]&&S.pots[i].pl&&!S.pots[i].w){S.pots[i].w=2;any=1}}
  if(!any){narr('每一盆都水灵灵的,今天不用浇。');return false}
  S.water-=cost;S.counters.watered++;
- narr('你提着壶,一盆一盆浇过去。水渗进土里的声音,像很轻的"谢谢"。');
+ narr('你提着壶,一盆一盆浇过去。水渗进土里的声音,像很轻的"谢谢"。(每盆水分可撑两天)');
+ bigToast('💧 浇透了整面花架 · 耗水 '+cost+' 罐(剩 '+S.water+')');
  if(S.weather==='rain')narr('屋檐下的雨也来帮忙,接了半壶。');refreshPanel();updHud();return true}
 function noWater(){narr('水不够了。净水藤、水塘,或者用东西跟客人换——总能等到水。');return false}
-function growPass(){ // 傍晚生长;连续3天缺水会枯死
+function growPass(){ // 傍晚生长;水分w=可撑天数,每晚消耗1;连续缺水会枯死
  var i,p,adjSil,adjSad,died=0;
  for(i=0;i<S.pots.length;i++){p=S.pots[i];if(!p||!p.pl)continue;
-  if(!p.w&&S.weather!=='rain'){
+  if(p.w>0){
+   p.w--;p.miss=0;
+   if(p.st<2){
+    adjSil=isAdj(i,'silence');adjSad=isAdj(i,'sad');
+    var up=1;if(adjSil&&rnd()<0.5)up=2;if(adjSad&&rnd()<0.4)up=0;
+    p.st+=up;if(p.st>=2){p.st=2;onMature(i)}}
+  }else{
    p.miss=(p.miss||0)+1;
    var tol=p.tag?99:(WITHER_DAYS[p.pl]||3);
    if(!p.tag&&p.miss>=tol){
     narr(PLANTS[p.pl].n+'枯了。叶子卷成小小的信,寄不出去。');S.pots[i]=null;S.counters.deaths++;died++;continue}
    if(p.tag&&p.miss===3)narr('纽拉的花蔫头耷脑,却咬着牙撑着——它答应过要开花的。它好像格外顽强。');
    else if(!p.tag&&p.miss===tol-1)narr(PLANTS[p.pl].n+'的叶子垂到了盆沿——再不浇水,它就熬不过明天了。');
-   continue}
-  if(p.st<2){
-   p.w=0;p.miss=0;
-   adjSil=isAdj(i,'silence');adjSad=isAdj(i,'sad');
-   var up=1;if(adjSil&&rnd()<0.5)up=2;if(adjSad&&rnd()<0.4)up=0;
-   p.st+=up;if(p.st>=2){p.st=2;onMature(i)}}
-  else{p.w=0;p.miss=0}}
+  }
+ }
  refreshPanel();
  if(died>0)checkWither();
 }
@@ -928,7 +999,7 @@ function anyThirsty(){if(S.weather==='rain')return false;var i;for(i=0;i<S.pots.
 function seedStock(){var n=S.seeds+S.myst,k;for(k in S.seedBag)n+=S.seedBag[k];return n}
 function checkWither(){
  var alive=0,i;for(i=0;i<S.pots.length;i++)if(S.pots[i]&&S.pots[i].pl)alive++;
- if(alive===0)witherEnd();
+ if(alive===0&&seedStock()===0)witherEnd();
 }
 function witherEnd(){
  S.ended='wither';
@@ -936,11 +1007,54 @@ function witherEnd(){
   '<p>最后一盆花枯掉的傍晚,风把干叶吹到门口,像一封退回的信。</p>'+
   '<p>没有花的花店,只是一间空屋子。客人路过,看一眼关着的门,把想说的话又咽了回去。</p>'+
   '<p>你把"暂停营业"的牌子挂了很久。久到灰落满了字,久到你开始怀疑:这家店,和这个开店的自己,到底是谁留下的。</p>'+
-  '<p class="dim">—— 花每天要浇水(雨天免浇);耐旱各有不同:铁线蕨两天就熬不住,仙人掌能撑六天。花架上的花全枯,店就开不下去了。——</p>',
+  '<p class="dim">—— 一颗种子一生只开一次花:采摘后盆就空了,六成概率根下留种。花每天消耗一份水分(雨天补满两份);缺水超过耐旱天数会枯死(铁线蕨最娇,仙人掌最扛)。花架全空、又没有种子时,店就开不下去了。——</p>',
   [{h:'重新开始新的三十天',f:function(){try{localStorage.removeItem('wfsd1_save')}catch(e){}location.reload()}}]);
  save();
 }
 function isAdj(i,id){var l=S.pots[i-1],r=S.pots[i+1];return (l&&l.pl===id&&l.st===2)||(r&&r.pl===id&&r.st===2)}
+var BASE_SEEDS=['moss','fern','horn','cact','viol'];
+function potProgress(p){return (p.st===0?'种子 0/2':(p.st===1?'发芽 1/2':'成熟 2/2'))}
+function potClasses(i){ // 花盆样式:ready可采/dry缺水/mate可授粉/fx功能花
+ var p=S.pots[i],cls='pot';
+ if(!p)return cls;
+ var pl=PLANTS[p.pl];
+ var canPick=p.st===2&&(p.cd||0)<=0&&(YIELD[p.pl]||p.pl==='vine'||p.pl==='chime'||p.tag==='纽拉');
+ if(p.st===2&&hybridCheck(i).length>0)cls+=' mate';
+ if(canPick)cls+=' ready';
+ if(!p.w)cls+=' dry';
+ if(pl.fx)cls+=' fx';
+ return cls;
+}
+function seedOf(pl){ // 采摘留种:基础花回基础种子,杂交/突变回同类种子;神秘种子不留
+ if(pl==='myst')return null;
+ if(BASE_SEEDS.indexOf(pl)>=0)return 'base';
+ return pl;
+}
+function harvestPot(i){ // 一颗种子,一生只开一次花:采摘后花盆腾空(纽拉的花除外)
+ var p=S.pots[i];
+ if(!p||!p.pl||p.st!==2||(p.cd||0)>0)return false;
+ var y=YIELD[p.pl];
+ if(p.tag==='纽拉')y={item:'nyurabloom',cd:4};
+ if(p.pl==='vine')y={item:'__water',q:2};
+ if(p.pl==='chime')y={item:'__water',q:1};
+ if(!y)return false;
+ if(y.item!=='__water'&&invCount()+1>S.invCap){sys('背包满了——先腾出一格,再来采摘。');return false}
+ if(y.item==='__water'){S.water+=y.q;gain('(净水+'+y.q+') 齐齐整整地记进了水账。');updHud()}
+ else{addItem(y.item,1);narr('你小心地把'+ITEMS[y.item].n+'从'+PLANTS[p.pl].n+'上采下来,吹了吹灰。收进背包了。')}
+ if(p.tag){p.cd=y.cd} // 纽拉的花是特例:开完还开
+ else{
+  S.pots[i]=null;
+  var keep=S.testMode?1:(rnd()<0.6?1:0);
+  var sid=seedOf(p.pl);
+  if(keep&&sid){
+   if(sid==='base')S.seeds+=1;
+   else S.seedBag[sid]=(S.seedBag[sid]||0)+1;
+   gain('花的根下,留了一粒种子。'+(sid==='base'?'(基础种子+1)':'('+PLANTS[sid].n+'种子+1)'));
+  }else if(sid){sys('这株没有留下种子。想再种,得再去换、去捡,或者去杂交。')}
+ }
+ S.counters.picks++;if(S.dayT)S.dayT.picks++;
+ refreshPanel();save();return true;
+}
 function onMature(i){var p=S.pots[i],pl=PLANTS[p.pl];
  gain(pl.n+'成熟了。'+pl.d);
  if(p.pl==='myst')mutate(i);
@@ -966,6 +1080,7 @@ function hybridCheck(i){ // 相邻的两盆成熟亲本(花期休息中不可授
 }
 function doHybrid(i,rec){ // 授粉结出杂交种子;两位亲本进入花期休息,都不会变坏
  S.seedBag[rec.h.c]=(S.seedBag[rec.h.c]||0)+1;
+ S.knowHyb[rec.h.c]=1;
  S.pots[i].cd=3;S.pots[rec.nb].cd=3;
  S.summary.hyb=(S.summary.hyb||[]).concat([PLANTS[rec.h.c].n]);
  narr('你用棉签轻轻把花粉从'+PLANTS[rec.h.a].n+'递给'+PLANTS[rec.h.b].n+'。两位亲本打了个盹,进入花期休息(3天)。');
@@ -1064,8 +1179,13 @@ function favGain(cid,n){
  refreshPanel();
 }
 /* ================= 日期推进 ================= */
+function getRainChance(day){ // 雨天更勤;头几天(新手期)更慷慨
+ if(day<=6)return 0.35;
+ return 0.28;
+}
 function weatherRoll(){
- var r=rnd();return r<0.6?'clear':(r<0.85?'fog':'rain');
+ var rc=getRainChance(S?S.day:1);
+ var r=rnd();return r<(1-rc-0.22)?'clear':(r<(1-rc)?'fog':'rain');
 }
 var WEATHER_TXT={
  clear:['天很干净,像被人擦过。',
@@ -1100,10 +1220,11 @@ function weatherLine(w){
 }
 function startDay(){
  S.phase=0;S.weather=S.baro||weatherRoll();S.baro=null;
- S.tradeToday={};S.visitors=null;
- if(S.weather==='rain'){var rw;for(rw=0;rw<S.pots.length;rw++){if(S.pots[rw]&&S.pots[rw].pl){S.pots[rw].w=1;S.pots[rw].miss=0}}}
+ S.tradeToday={};S.negoToday=0;S.negoBonus={};S.dayT={picks:0,trade:0};S.visitors=null;
+ if(S.weather==='rain')rainFill();
  var wtxt=weatherLine(S.weather);
  daymark('第 '+S.day+' 天 · '+({clear:'晴',fog:'辐射雾',rain:'雨'})[S.weather]);
+ if(S.day<=6&&!S.sealed)sys('【新手指引 · 第'+S.day+'天】'+tutorialHint(S.day));
  if(S.day===1){introScene();return}
  if(scriptHook())return;
  narr(wtxt);
@@ -1374,6 +1495,55 @@ var ASKNONE={
  sasha:'"没有啊——意料之中!"他拍拍琴箱,一点也不失望,"备用方案:清唱!"他当场唱了两句,跑调跑得很敬业,但快乐是真的。',
  vera:'她点点头,推了推眼镜:"行,这条我记成「待观察」。"她收好本子,"记者等得起。等它有了那天,你第一个告诉我。"'
 };
+function negotiate(cid){ // 简单交涉:每天一次,好感越高越容易成
+ if(S.negoToday===S.day)return null;
+ S.negoToday=S.day;
+ var chance=0.4+S.fav[cid].lv*0.08+(S.tools.earp?0.2:0);
+ var ok=rnd()<chance;
+ if(ok)S.negoBonus[cid]=1;else S.negoBonus[cid]=0;
+ return {ok:ok,who:cid};
+}
+function revealHybByTrade(){
+ var un=[],k;
+ for(k=0;k<HYBRIDS.length;k++){var hh=HYBRIDS[k];if(hh.c!=='MUT'&&!S.knowHyb[hh.c])un.push(hh)}
+ if(un.length===0)return;
+ var h=un[ri(un.length)];
+ S.knowHyb[h.c]=1;
+ say('pavel','"哦,对了——补一条育种情报,就当学费的一部分:'+PLANTS[h.a].n+' × '+PLANTS[h.b].n+',能结出'+PLANTS[h.c].n+'。图鉴里替你记好了。"');
+ gain('(杂交图鉴更新:'+knownHybCount()+'/14)');
+}
+function flowerListInBag(){
+ var list=[],i,seen={};
+ for(i=0;i<S.inv.length;i++){var it=ITEMS[S.inv[i].id];
+  if(it&&FLOWER_CATS.indexOf(it.cat)>=0&&S.inv[i].q>0&&!seen[S.inv[i].id]){seen[S.inv[i].id]=1;list.push(S.inv[i].id)}}
+ return list;
+}
+function giftFlower(cid,id){ // 按客人挑花:心头好有加成
+ S.giftToday[cid]=1;
+ removeItem(id,1);
+ if(cid==='pu'&&id==='nyurabloom'){
+  meSay('你把「纽拉的花束」递给老普:"纽拉种的。她说,开出来的第一束,要送给一个重要的人。"');
+  if(!S.flags.pu_grand){
+   S.flags.pu_grand=1;
+   dark('老普捧着花,凑近,闻了一下——忽然,浑身轻轻一震,像被很旧的电流过了一遍。');
+   dark('"……这个香气。"他的声音哑了,"很多年前,我抱着一个小姑娘睡觉。她睡熟以后,满屋子就是这个味道。她管我叫——"他停在那两个字跟前,像被烫了一下,再也迈不过去。"想不起来了。"他红着眼眶,把那束花抱在胸口,"为什么会,想不起来?"');
+   gain('(老普把花,别在了大衣最里面的一颗扣子上)');
+   addFrag();
+  }else{
+   dark('他又闻了一次那束花,又一次,停在同一条门槛前——离那两个字,只差半步。');
+  }
+  favGain(cid,3);atmoGain(2);updHud();save();return true;
+ }
+ meSay('你把「'+ITEMS[id].n+'」轻轻推了过去:"送给你的。不换什么。"');
+ say(cid,GIFTFLOWER[cid]);
+ gain('('+ITEMS[id].n+' ×1 送出)');
+ if(FLOWERPICK[cid]===id){
+  say(cid,'(接过花,愣了一下,又低头闻了闻)"这花……你怎么知道,是我最喜欢的?"');
+  gain('(正中心头好!好感+3 氛围+3)');
+  favGain(cid,3);atmoGain(3);
+ }else{favGain(cid,2);atmoGain(2)}
+ updHud();save();return true;
+}
 function tradeOffer(cid,done){
  var c=CUST[cid],i,offer=null,itemId=null;
  if(!S.giftToday)S.giftToday={};
@@ -1383,18 +1553,20 @@ function tradeOffer(cid,done){
  }
  var wtxt=c.w.map(wantName).join('/');
  var render=function(){
- var flowerId=hasCat('nyura')||hasCat('purple')||hasCat('flower');
+ var flowers=flowerListInBag();
+ var flowerId=flowers.length>0?flowers[0]:null;
  var opts=[];
  if(offer){
   var it=ITEMS[offer];
   opts.push({h:'交换:拿出「'+it.n+'」',s:c.n+'想要:'+wtxt+' · 好感也会升温',tag:'以物易物',k:'trade'});
+  opts.push({h:'先交涉一下,再换',s:'今天头一回 · 聊得好,对方可能多给一点(耳机在手更稳)',tag:'交涉',k:'nego'});
  }else{
   opts.push({h:'(交换)'+c.n+'想要:'+wtxt+'——你今天没有这些',s:'花架采摘、旧物、零食都能拿来换',tag:'以物易物',k:'no',d:true});
   if(!S.flags.beatAskedNone)opts.push({h:'问一问:"今天想带点什么走吗?"',s:'先问问,才知道能不能帮上 · 氛围+1',tag:'招呼',k:'nogoods'});
  }
  if(!S.giftToday[cid]){
-  if(flowerId){
-   opts.push({h:'送一束「'+ITEMS[flowerId].n+'」(不图交换)',s:'一份心意 · 好感+2 氛围+2',tag:'送花',k:'gift'});
+  if(flowers.length>0){
+   opts.push({h:'送一束花(从背包里挑)',s:'心意 · 送中心头好的话,好感+3 氛围+3',tag:'送花',k:'gift'});
   }else{
    opts.push({h:'送一束花(背包里没有花)',s:'花架上的花成熟后,采摘就能送人',tag:'送花',k:'noflower',d:true});
   }
@@ -1409,33 +1581,35 @@ function tradeOffer(cid,done){
    setChoices('客人体谅地笑了笑。',[{h:'目送对方离开',k:'bye'}],function(){finishVisit(cid,done)});
    return;
   }
+  if(k==='nego'){
+   var r=negotiate(cid);
+   if(r){
+    meSay('你没急着把东西推过去,先聊了两句——花、天气、TA今天的气色。');
+    if(r.ok){say(cid,'(聊到一半,对方主动往柜台那边凑了凑)"……这样,再添你一点。就当交个朋友。"');gain('(交涉成功!这单交换会更划算)')}
+    else{say(cid,'(对方笑着摇摇头)"东西是好东西,可今天手头就这些啦。"');sys('(交涉没成——不过气氛更好了)');atmoGain(1)}
+    updHud();save();
+   }
+   render();
+   return;
+  }
   if(k==='gift'){
-   S.giftToday[cid]=1;
-   removeItem(flowerId,1);
-   if(cid==='pu'&&flowerId==='nyurabloom'){
-    meSay('你把「纽拉的花束」递给老普:"纽拉种的。她说,开出来的第一束,要送给一个重要的人。"');
-    if(!S.flags.pu_grand){
-     S.flags.pu_grand=1;
-     dark('老普捧着花,凑近,闻了一下——忽然,浑身轻轻一震,像被很旧的电流过了一遍。');
-     dark('"……这个香气。"他的声音哑了,"很多年前,我抱着一个小姑娘睡觉。她睡熟以后,满屋子就是这个味道。她管我叫——"他停在那两个字跟前,像被烫了一下,再也迈不过去。"想不起来了。"他红着眼眶,把那束花抱在胸口,"为什么会,想不起来?"');
-     gain('(老普把花,别在了大衣最里面的一颗扣子上)');
-     addFrag();
-    }else{
-     dark('他又闻了一次那束花,又一次,停在同一条门槛前——离那两个字,只差半步。');
-    }
-    favGain(cid,3);atmoGain(2);updHud();save();
-    setChoices('老普抱着那束花,像抱着一点够不着的光。',[{h:'目送对方离开',k:'bye'}],function(){finishVisit(cid,done)});
+   if(flowers.length===1){
+    giftFlower(cid,flowers[0]);
+    setChoices('花送出去了。',[{h:'目送对方离开',k:'bye'}],function(){finishVisit(cid,done)});
     return;
    }
-   meSay('你把「'+ITEMS[flowerId].n+'」轻轻推了过去:"送给你的。不换什么。"');
-   say(cid,GIFTFLOWER[cid]);
-   gain('('+ITEMS[flowerId].n+' ×1 送出)');
-   favGain(cid,2);atmoGain(2);updHud();save();
-   setChoices('花送出去了。',[{h:'目送对方离开',k:'bye'}],function(){finishVisit(cid,done)});
+   var gb=[{h:'先不送了',f:function(){closeModal()}}],gi;
+   for(gi=0;gi<flowers.length;gi++)(function(fid){
+    gb.unshift({h:'送「'+ITEMS[fid].n+'」'+(FLOWERPICK[cid]===fid?'(心头好♥)':''),s:ITEMS[fid].d,tag:'挑花',f:function(){
+     closeModal();giftFlower(cid,fid);
+     setChoices('花送出去了。',[{h:'目送对方离开',k:'bye'}],function(){finishVisit(cid,done)});
+    }});
+   })(flowers[gi]);
+   modal('<h2>送哪一束?</h2><p class="dim" style="font-size:13px">不同的客人,喜欢不同的花。送中心头好,情谊翻倍。</p>',gb,{x:true});
    return;
   }
   if(k==='trade'){
-   S.tradeToday[cid]=1;removeItem(offer,1);
+   S.tradeToday[cid]=1;removeItem(offer,1);if(S.dayT)S.dayT.trade++;
    if(offer==='quip'){
     if(!S.flags['quip_'+cid]){S.flags['quip_'+cid]=1;say(cid,QUIPREACT[cid]||QUIPREACT._);atmoGain(1)}
     else say(cid,pick(['又咬了一口俏皮果,又笑了一次。','第二颗俏皮果,吃得心安理得。']));
@@ -1446,10 +1620,12 @@ function tradeOffer(cid,done){
     if(rl)say(cid,rl);
    }
    var t=pick(c.trades);
-   if(t.g.res==='parts'){S.parts+=t.g.q;gain(t.l+'(零件+'+t.g.q+')')}
-   else if(t.g.res==='water'){S.water+=t.g.q;gain(t.l+'(净水+'+t.g.q+')')}
-   else if(t.g.res==='seeds'){if(t.g.myst){S.myst+=t.g.q;gain(t.l+'(神秘种子+'+t.g.q+')')}else{S.seeds+=t.g.q;gain(t.l+'(种子+'+t.g.q+')')}}
-   else if(t.g.item){addItem(t.g.item,1);gain(t.l)}
+   var bonus=S.negoBonus[cid]?1:0;
+   if(t.g.res==='parts'){S.parts+=t.g.q+bonus;gain(t.l+'(零件+'+(t.g.q+bonus)+')')}
+   else if(t.g.res==='water'){S.water+=t.g.q+bonus;gain(t.l+'(净水+'+(t.g.q+bonus)+')')}
+   else if(t.g.res==='seeds'){var sq=t.g.q+bonus;if(t.g.myst){S.myst+=sq;gain(t.l+'(神秘种子+'+sq+')')}else{S.seeds+=sq;gain(t.l+'(种子+'+sq+')')}}
+   else if(t.g.item){addItem(t.g.item,1);gain(t.l);if(bonus){S.water+=1;gain('(交涉的甜头:对方又匀了一罐水。净水+1)')}}
+   if(cid==='pavel')revealHybByTrade();
    if(S.tools.earp){S.parts+=1;gain('(耳机里,你听见他/她心里的底价:"其实还想多给一点。")——零件+1')}
    favGain(cid,1);S.counters.trade++;updHud();
    setChoices('交易完成。',[{h:'目送对方离开',k:'bye'}],function(){finishVisit(cid,done)});
@@ -1495,6 +1671,9 @@ function settle(){
  if(has(S.unlocked,'cabinet')){S.cabTick++;if(S.cabTick>=5){S.cabTick=0;if(rnd()<0.5){narr('展示柜前,一位路过的客人站了很久,轻轻说了一句什么。');addFrag()}}}
  if(S.tools.logbook){S.logTick++;if(S.logTick>=3){S.logTick=0;if(rnd()<0.5){narr('巡检记录簿无风自动,翻到一页新的。');addFrag()}}}
  if(at>0){atmoGain(at);gain('夜里的店安安静静地亮着。氛围值 +'+at+'。')}
+ if(S.dayT&&(S.dayT.picks>0||S.dayT.trade>0)){
+  sys('—— 今日账目:采摘 '+S.dayT.picks+' 次 · 交易 '+S.dayT.trade+' 次 · 存水 '+S.water+' 罐 · 氛围 '+S.atmo+' ——');
+ }
  updHud();
 }
 function rollEvents(){
@@ -1967,13 +2146,13 @@ function scriptHook(){
 }
 function introScene(){
  artMsg(svgTitle());
- narr('战争结束的第三年——所有人都这么说,虽然没人说得清战争是哪天结束的。');
- narr('你在废墟和小镇的交界处,开了一间花店。招牌是捡来的旧木板,字是你自己描的:"花,水,和一点时间。"');
- narr('花架上住着四位老住户:发光苔藓、铁线蕨、紫罗兰,和一盆刚冒头的喇叭花。柜台上还有一束没卖完的干花、半袋干粮——以物易物的本钱。');
- narr('早上浇水,中午迎客,傍晚歇业后写写日记、翻翻旧物。日子不宽裕,但花架上的绿意,一天比一天厚。');
- narr('你记得怎么修旧物,记得每种花的脾气,记得每个客人的名字。你只是不太记得——自己是从哪儿来的。');
- sys('开店须知:①花每天要浇水(雨天免浇),缺水会枯死——耐旱各不同(铁线蕨最娇两天,仙人掌最扛六天);花架上的花全枯,店就开不下去了;②花成熟后会结果,在右侧「花架」面板点击那盆花即可采摘;③相邻的两盆成熟花可以授粉结出杂交种子——全部配方点「杂交图鉴」按钮查;④客人来访时,用他们想要的东西以物易物。');
- sys('水源提示:雨天屋檐自动接满两罐;散步常能找到存水;叶芙多基娅那儿能用她想要的东西换净水;喇叭花×发光苔藓=净水藤,每天产两罐。');
+ narr('大水退去的第三年——所有人都这么说,虽然没人说得清大水是哪天退的。');
+ narr('你在废墟和小镇的交界处,推开一扇歪歪扭扭的木门。灰扑扑的柜台,瘸了一条腿的凳子,还有一面缺了角的花架——从今天起,这里是你的花店。');
+ narr('清晨没有客人。你把水壶灌满,对着壶里的倒影,把自我介绍认真练了一遍:"老板,种花的。想要点什么——花,水,还是一点时间?"倒影里的人笑了笑。你想不起他的名字,但他看起来,不坏。');
+ narr('招牌是捡来的旧木板,字是你自己描的:"花,水,和一点时间。"花架上住着四位老住户:发光苔藓、铁线蕨、紫罗兰,和一盆刚冒头的喇叭花。柜台上还有一束没卖完的干花、半袋干粮——以物易物的本钱。');
+ narr('你记得怎么修旧物,记得每种花的脾气,记得——嗯,会记得每个客人的名字的。你只是不太记得,自己是从哪儿来的。');
+ sys('【今日指引】'+tutorialHint(1));
+ sys('小店现状:破旧的小花棚。用心经营,它会一点点变好。');
  setChoices('新的一天。从什么开始?',[{h:'先给花浇水',tag:'经营',k:'go2'},{h:'先看看花架',tag:'经营',k:'go'}],function(k){
   if(k==='go2'){if(S.water>=2){waterAll()}else{narr('水不够了——不过今天先认认门。花架在右侧面板,每盆花都能点。')}}
   else{narr('四位老住户在晨光里排成一排——今晨你已经给它们浇过水了,土还润着。(点击右侧「花架」面板里的盆,可以单独照料、采摘、授粉;空盆可以种下种子;明天记得再浇水)')}
@@ -2125,13 +2304,18 @@ function endLeave(quiet){
   '<p class="dim">'+echoLines().join('<br>')+'</p>',
   [{h:'继续经营(无限模式)',f:function(){$('modal').style.display='none';$('modalCard').className='card';narr('日子继续。这就是你的答案。');startDay()}}]);
 }
+function endWakeBody(){
+ return '"关掉吧。"你说。声音不大,但整个绿洲都听见了。</p>'+
+  '<p>世界没有像灯一样熄灭——它下起了雪。真实的、干净的、一点灰都没有的雪。</p>'+
+  '<p>十七张白色的床,在雪里一张一张醒来。他们记得一切了:记得自己是谁,记得那年的春天,也记得——这三十年,是谁把春天一盆一盆地端到他们面前。</p>'+
+  '<p>他们没有让你独自留下。哥哥伊万第一个走过来,把你从控制台前扶开,像很多年前他想做而没来得及做的那样;祖母给你别上一朵刚醒来的小花;薇拉把相机挂回脖子上,认真地看着你:"这一篇,标题我来起。"纽拉扑进你怀里,小声说:"老板,故事讲完了,该吃饭了。"最后,谢尔盖——老普——在你的新木牌上,一笔一画,补上了你遗忘了很久的名字。</p>'+
+  '<p>帕维尔走在最后面。他替你按住那道接缝,让所有人一个一个走过去:像下课的学生,像散场的戏,像一条终于解冻的河。你是最后一个。跨过去的时候,你回头看了一眼——雪地里,花店的灯还亮着,门口的台阶,被踩得发亮。</p>'+
+  '<p>后来的很多年,隔离区边缘的纪念墙下,总有十八束花。第十八个名字旁边,压着一张字条,字迹很稳:"花,水,和一点时间。"';
+}
 function endWake(){
  S.ended='wake';save();
- endCard('<div class="emo">🕊️</div><h2>结局 · 告别</h2>'+
-  '<p>"关掉吧。"你说。声音不大,但整个绿洲都听见了。</p>'+
-  '<p>世界像一盏被轻轻拧暗的灯。花架、风铃、旧物箱、柜台——它们一层层变薄,变成光,又变成纸,最后变成一场谁替你做完了的、很长的梦。</p>'+
-  '<p>你醒来。白色的房间,真实的阳光,刺得人流泪。你的手心里有一道旧疤,细得像一针没缝好的线——现在,你记得它是怎么来的了。</p>'+
-  '<p>后来的很多年,隔离区外的纪念墙下,总会有人放下一束花。父亲的名字旁边一束,哥哥的名字旁边一束;还有一个小小的名字旁边,总压着一张蓝色的糖纸。没人知道是谁放的。只有花知道:种花的人,终于记得自己是谁了——也记得了,自己是谁的丈夫、儿子,和父亲。</p>'+
+ endCard('<div class="emo">🕊️</div><h2>结局 · 渡雪</h2>'+
+  '<p>'+endWakeBody()+'</p>'+
   '<p class="dim">'+echoLines().join('<br>')+'</p>',
   [{h:'—— 谢谢游玩 ·《废土花店日记》——',f:function(){location.reload()}}]);
 }
@@ -2154,25 +2338,24 @@ function refreshPanel(){
  if(TAB==='pots'){
   var sbt='',x;for(x in S.seedBag){if(S.seedBag[x]>0)sbt+=' · '+PLANTS[x].n+'种×'+S.seedBag[x]}
   h+='<h4>花架 ('+potCount()+'/'+S.potCap+' 盆) · 种子×'+S.seeds+' · 神秘种子×'+S.myst+sbt+'</h4>';
-  h+='<div style="margin:0 0 8px"><button class="mini" onclick="showHybridCodex()">📚 杂交图鉴(什么花 × 什么花 = 什么)</button></div>';
+  h+='<div style="margin:0 0 8px"><button class="mini" data-act="showHybridCodex">📚 杂交图鉴('+knownHybCount()+'/14 已发现)</button></div>';
   h+='<div class="potgrid">';
   var i,p2;
   for(i=0;i<S.potCap;i++){
    p2=S.pots[i];
-   if(!p2){h+='<div class="pot" onclick="potClick('+i+')"><div class="ic"></div><div class="nm dim">空盆 '+ (i+1) +'</div><div class="st">点击种下种子</div></div>';continue}
-   var pl=PLANTS[p2.pl],cls='pot';
+   if(!p2){h+='<div class="pot" data-act="potClick" data-arg="'+i+'"><div class="ic"></div><div class="nm dim">空盆 '+ (i+1) +'</div><div class="st">点击种下种子</div></div>';continue}
+   var pl=PLANTS[p2.pl];
    var canPick=p2.st===2&&(p2.cd||0)<=0&&(YIELD[p2.pl]||p2.pl==='vine'||p2.pl==='chime'||p2.tag==='纽拉');
-   if(p2.st===2&&hybridCheck(i).length>0)cls+=' mate';
-   if(canPick)cls+=' ready';
-   if(!p2.w)cls+=' dry';
-   var stt=p2.st===0?'种子':(p2.st===1?'发芽':'成熟');
-   if(canPick)stt+=' ·可采摘';
-   if(p2.st===2&&hybridCheck(i).length>0)stt+=' ·可授粉';
+   var cls=potClasses(i);
+   var stt=potProgress(p2);
+   if(canPick)stt+=' <b class="pk">可采摘</b>';
+   if(p2.st===2&&hybridCheck(i).length>0)stt+=' <b class="pk" style="background:#e2ecd8;color:#4f7a55">可授粉</b>';
    if(p2.st===2&&YIELD[p2.pl]&&(p2.cd||0)>0)stt+=' ·休整'+p2.cd+'天';
-   if(!p2.w){var tol2=p2.tag?99:(WITHER_DAYS[p2.pl]||3);stt+=' ·缺水'+(p2.miss||0)+(p2.tag?'(顽强)':('/'+tol2))}
-   h+='<div class="'+cls+'" onclick="potClick('+i+')"><div class="ic">'+potIcon(p2,50)+'</div><div class="nm">'+pl.n+(p2.tag?'「'+p2.tag+'」':'')+'</div><div class="st">'+stt+'</div></div>';
+   if(p2.w>0)stt+=' ·<b class="wet">水分'+p2.w+'</b>';
+   else{var tol2=p2.tag?99:(WITHER_DAYS[p2.pl]||3);stt+=' ·缺水'+(p2.miss||0)+(p2.tag?'(顽强)':('/'+tol2))}
+   h+='<div class="'+cls+'" data-act="potClick" data-arg="'+i+'"><div class="ic">'+potIcon(p2,50)+'</div><div class="nm">'+pl.n+(p2.tag?'「'+p2.tag+'」':'')+(pl.fx?' ✦':'')+'</div><div class="st">'+stt+'</div></div>';
   }
-  h+='</div><h4>养花须知</h4><div class="dim">花每天要浇水(雨天免浇);耐旱各有不同(盆上会标 缺水/极限),花架上的花全枯,店就开不下去了。相邻的两盆成熟亲本可以「授粉」结出杂交种子(亲本只是休整3天,不会受损);神秘种子成熟后随机突变(共7种)。已发现杂交/突变:'+S.counters.hyb+' 种。</div>';
+  h+='</div><h4>养花须知</h4><div class="dim">一颗种子一生只开一次花:采摘后花盆腾空,有六成概率在根下留种。花每天消耗一份水分(雨天自动补满两份);缺水超过耐旱天数会枯死,花架全空又没有种子,店就开不下去了。带 ✦ 的是功能花(产水、线索、氛围…),点开花盆可看「作用」。相邻的两盆成熟亲本可以「授粉」;图鉴只记你发现的配方。已发现杂交/突变:'+S.counters.hyb+' 种。</div>';
  }
  else if(TAB==='cust'){
   var metN=0,totN=0,k0;
@@ -2234,26 +2417,28 @@ function potClick(i){
  if(!p){
   var opts=[],ids=['moss','fern','horn','cact','viol'],k,sb=[],k3,sbn='';
   for(k3 in S.seedBag){if(S.seedBag[k3]>0){sb.push(k3);sbn+=' · '+PLANTS[k3].n+'种×'+S.seedBag[k3]}}
-  for(k=0;k<ids.length;k++)opts.push({h:'种下'+PLANTS[ids[k]].n,s:PLANTS[ids[k]].d+'(基础种子×'+S.seeds+')',tag:'种子',d:S.seeds<1,f:(function(pid){return function(){closeModal();S.seeds--;plantPot(pid,null,i);narr('你把'+PLANTS[pid].n+'种进第'+(i+1)+'号盆,拍实了土。')}})(ids[k])});
-  for(k=0;k<sb.length;k++)opts.push({h:'种下'+PLANTS[sb[k]].n+'(杂交种子×'+S.seedBag[sb[k]]+')',s:PLANTS[sb[k]].d,tag:'杂交种',f:(function(pid){return function(){closeModal();S.seedBag[pid]--;plantPot(pid,null,i);AU.chime();narr('你把来之不易的'+PLANTS[pid].n+'种子埋进土里,又多拍了两下土。')}})(sb[k])});
-  if(S.myst>0)opts.push({h:'种下神秘种子',s:'不知道会长出什么。这大概就是希望的样子。(×'+S.myst+')',tag:'神秘',cls:'dark',f:function(){closeModal();S.myst--;plantPot('myst',null,i);narr('神秘种子埋下去了。土面平平无奇,土下暗流涌动。')}});
+  for(k=0;k<ids.length;k++)opts.push({h:'种下'+PLANTS[ids[k]].n,s:'作用:'+PLANTS[ids[k]].use+'(基础种子×'+S.seeds+')',tag:'种子',d:S.seeds<1,f:(function(pid){return function(){closeModal();S.seeds--;plantPot(pid,null,i);narr('你把'+PLANTS[pid].n+'种进第'+(i+1)+'号盆,拍实了土。')}})(ids[k])});
+  for(k=0;k<sb.length;k++)opts.push({h:'种下'+PLANTS[sb[k]].n+'(杂交种子×'+S.seedBag[sb[k]]+')',s:'作用:'+PLANTS[sb[k]].use,tag:'杂交种',f:(function(pid){return function(){closeModal();S.seedBag[pid]--;plantPot(pid,null,i);AU.chime();narr('你把来之不易的'+PLANTS[pid].n+'种子埋进土里,又多拍了两下土。')}})(sb[k])});
+  if(S.myst>0)opts.push({h:'种下神秘种子',s:'作用:成熟时随机突变成七种奇花之一。(×'+S.myst+')',tag:'神秘',cls:'dark',f:function(){closeModal();S.myst--;plantPot('myst',null,i);narr('神秘种子埋下去了。土面平平无奇,土下暗流涌动。')}});
   opts.push({h:'先空着',f:function(){closeModal()}});
   modal('<h2>第'+(i+1)+'号空盆</h2><p>基础种子×'+S.seeds+' · 神秘种子×'+S.myst+sbn+'</p>',opts,{x:true});
   return;
  }
  var acts=[];
  var y=YIELD[p.pl];
- if(p.tag==='纽拉'&&p.st===2&&(p.cd||0)<=0)y={item:'nyurabloom',cd:4};
+ if(p.tag==='纽拉'&&p.st===2)y={item:'nyurabloom',cd:4};
  if(p.pl==='vine')y={item:'__water',q:2,cd:1};
  if(p.pl==='chime')y={item:'__water',q:1,cd:2};
  if(p.st===2&&y&&(p.cd||0)<=0){
   var yname=y.item==='__water'?('滤好的清水'+(y.q>1?'×'+y.q:'')):ITEMS[y.item].n;
-  acts.push({h:'采摘:'+yname+'('+(p.tag?'纽拉的花':PLANTS[p.pl].n+'的出产')+')',s:'采完休整'+y.cd+'天,会再出产',tag:'收获',f:(function(pid,yy){return function(){closeModal();
-   if(yy.item==='__water'){S.water+=yy.q;gain('(净水+'+yy.q+') 齐齐整整地记进了水账。');updHud()}
-   else{addItem(yy.item,1);narr('你小心地把'+ITEMS[yy.item].n+'从'+PLANTS[pid].n+'上采下来,吹了吹灰。收进背包了。')}
-   p.cd=yy.cd;S.counters.picks++;refreshPanel();save()}})(p.pl,y)});
+  acts.push({h:'采摘:'+yname+'('+(p.tag?'纽拉的花':PLANTS[p.pl].n+'的出产')+')',s:p.tag?'采完休整'+y.cd+'天,还会再开':'一颗种子开一次花——采完花盆腾空;六成概率根下留种',tag:'收获',f:(function(pi){return function(){closeModal();harvestPot(pi)}})(i)});
  }
- if(!p.w)acts.push({h:'单独浇一浇(净水×1)',tag:'照料',f:function(){closeModal();if(S.water<1){noWater();return}S.water-=1;p.w=1;narr('你给'+PLANTS[p.pl].n+'细细浇了一遍。');refreshPanel();updHud()}});
+ if(!p.w){
+  acts.push({h:'浇 1 份水(净水×1)',s:'水分撑 1 天',tag:'照料',d:S.water<1,f:(function(pi){return function(){closeModal();waterOne(pi,1)}})(i)});
+  acts.push({h:'浇 2 份水(净水×2)',s:'水分撑 2 天,出远门也放心',tag:'照料',d:S.water<2,f:(function(pi){return function(){closeModal();waterOne(pi,2)}})(i)});
+ }else{
+  acts.push({h:'再补 1 份水(净水×1)',s:'当前水分'+p.w+'天 · 补到 2 天封顶',tag:'照料',d:S.water<1||p.w>=2,f:(function(pi){return function(){closeModal();waterOne(pi,1)}})(i)});
+ }
  var hy=hybridCheck(i);
  if(p.st===2&&hy.length>0){
   var k2;for(k2=0;k2<hy.length;k2++){var rec=hy[k2];
@@ -2263,10 +2448,15 @@ function potClick(i){
  if(p.pl==='echo'&&p.st===2)acts.push({h:'听一听(要专门花一个早晨,在行动里选)',tag:'回声',f:function(){closeModal();narr('回声花的收音,值得一个安静的整个早晨。')}});
  if(p.pl==='mem'&&p.st===2)acts.push({h:'闻一闻(要专门花一个早晨,在行动里选)',tag:'记忆',cls:'dark',f:function(){closeModal()}});
  if(!p.tag)acts.push({h:'连根拔掉,腾出盆(不可恢复)',tag:'拔除',cls:'warn',f:(function(pid){return function(){closeModal();narr('你把'+PLANTS[pid].n+'连根移出了盆。土里留了个小小的坑,位置还空着,想种什么随时来。');S.pots[i]=null;refreshPanel();save()}})(p.pl)});
- var stTxt=p.st===0?'种子':(p.st===1?'发芽':'成熟');
+ var stTxt=potProgress(p);
  if((p.cd||0)>0)stTxt+=' ·结果休整'+p.cd+'天';
- if(!p.w)stTxt+=' ·缺水';
- modal('<h2>'+PLANTS[p.pl].n+(p.tag?'「'+p.tag+'」':'')+' · '+stTxt+'</h2><p style="font-size:15px">'+PLANTS[p.pl].d+'</p>'+(p.tag?'<p class="dim" style="font-size:13px">这盆有小小的主人——不挪窝、不拔除,也不参与杂交。但可以浇水,等它开花。</p>':''),acts,{x:true});
+ if(p.w>0)stTxt+=' ·水分'+p.w+'天';
+ else stTxt+=' ·缺水'+(p.miss||0)+'天';
+ var bar='<div id="growBar"><i style="width:'+Math.round(p.st/2*100)+'%"></i></div>';
+ modal('<h2>'+PLANTS[p.pl].n+(p.tag?'「'+p.tag+'」':'')+' · '+stTxt+'</h2>'+bar+
+  '<p style="font-size:15px">'+PLANTS[p.pl].d+'</p>'+
+  '<p class="dim" style="font-size:13px">作用:'+PLANTS[p.pl].use+(PLANTS[p.pl].fx?'(功能花 ✦)':'')+'</p>'+
+  (p.tag?'<p class="dim" style="font-size:13px">这盆有小小的主人——不挪窝、不拔除,也不参与杂交。但可以浇水,等它开花。</p>':''),acts,{x:true});
 }
 /* ================= 场景插画 ================= */
 function svgWrap(inner,w,h,dark){return '<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" xmlns="http://www.w3.org/2000/svg">'+inner+'</svg>'}
@@ -2337,6 +2527,7 @@ function selfTest(){
  var _set=setChoices;setChoices=function(){};
  var _mo=modal;modal=function(h,b){var o=autoPick(b);if(o){try{o.f()}catch(e){REPORT.errors.push('modal:'+e.message)}}};
  var _end=endCard;endCard=function(html,btns){REPORT.runs.push({ending:S.ended,day:S.day,clues:S.clues.length,which:S.clues.join(','),frags:S.frags.length,atmo:S.atmo,pursuit:S.pursuit,cat:S.cat});};
+ try{unitTests()}catch(e){REPORT.errors.push('unitTests:'+(e.message||e))}
  try{runPass('A')}catch(e){REPORT.errors.push('passA:'+(e.message||e))}
  try{runPass('B')}catch(e){REPORT.errors.push('passB:'+(e.message||e))}
  try{runPass('C')}catch(e){REPORT.errors.push('passC:'+(e.message||e))}
@@ -2354,6 +2545,78 @@ function autoPick(a){
  for(i=0;i<a.length;i++){if(a[i]&&a[i].d)continue;live.push(a[i])}
  if(live.length===0)return null;
  return live[TT.n++%live.length];
+}
+/* ================= 单元测试(玩法升级 v3 · TDD) ================= */
+function unitTests(){
+ var P=[],F=[],s0=S,sv=null;
+ try{sv=localStorage.getItem('wfsd1_save')}catch(e){}
+ function A(n,c){if(c)P.push(n);else F.push(n)}
+ function T(n,f){try{f()}catch(e){F.push(n+':EX '+(e.message||e))}}
+ T('inv-stack-cap',function(){S=newState();S.testMode=true;
+  S.inv=[{id:'water',q:S.invCap}];
+  A('inv-stack-cap',addItem('water',1)===false)});
+ T('water-level',function(){S=newState();S.testMode=true;S.water=9;
+  S.pots[0]={pl:'moss',st:2,w:0};
+  waterOne(0,2);
+  A('water-lv2',S.pots[0].w===2);
+  A('water-cost2',S.water===7);
+  waterOne(0,1);
+  A('water-lv1',S.pots[0].w===1)});
+ T('water-toast',function(){S=newState();S.testMode=true;S.water=9;
+  S.pots[0]={pl:'moss',st:2,w:0};
+  waterOne(0,1);
+  A('water-toast',String(window.__lastToast||'').indexOf('💧')>=0&&String(window.__lastToast||'').indexOf('moss')<0)});
+ T('rain-fill',function(){S=newState();S.testMode=true;
+  S.pots[0]={pl:'moss',st:2,w:0};S.weather='rain';rainFill();
+  A('rain-fill',S.pots[0].w===2)});
+ T('grow-consume',function(){S=newState();S.testMode=true;
+  S.pots[0]={pl:'moss',st:2,w:2};growPass();
+  A('grow-consume',S.pots[0].w===1)});
+ T('seed-once',function(){S=newState();S.testMode=true;S.inv=[];
+  S.pots[1]={pl:'viol',st:2,w:1};
+  var ok=harvestPot(1);
+  A('seed-once-ok',ok===true);
+  A('seed-once-empty',S.pots[1]===null);
+  A('seed-once-item',S.inv.length>0);
+  A('seed-once-reseed',S.seedBag.viol===1||S.seeds>3)});
+ T('nyura-keep',function(){S=newState();S.testMode=true;S.inv=[];
+  S.pots[2]={pl:'viol',st:2,w:1,tag:'纽拉'};
+  harvestPot(2);
+  A('nyura-keep',!!S.pots[2]&&S.pots[2].cd===4)});
+ T('harvest-bagfull',function(){S=newState();S.testMode=true;
+  S.inv=[{id:'water',q:S.invCap}];S.pots[1]={pl:'viol',st:2,w:1};
+  A('harvest-bagfull',harvestPot(1)===false&&!!S.pots[1])});
+ T('progress-text',function(){A('progress-text',potProgress({pl:'viol',st:1,w:1}).indexOf('1/2')>=0&&potProgress({pl:'viol',st:2,w:1}).indexOf('2/2')>=0)});
+ T('plants-use',function(){var okU=true,k;for(k in PLANTS){if(!PLANTS[k].use)okU=false}A('plants-use',okU)});
+ T('pot-fx-class',function(){S=newState();S.testMode=true;S.pots[0]={pl:'vine',st:2,w:1};var cls=potClasses(0);A('pot-fx-class',cls.indexOf('fx')>=0)});
+ T('codex-gate',function(){S=newState();S.testMode=true;
+  var h1=hybridCodexHtml();
+  A('codex-hidden',h1.indexOf('???')>=0);
+  S.knowHyb={lant:1};var h2=hybridCodexHtml();
+  A('codex-known',h2.indexOf('夜光灯笼')>=0&&h2.indexOf('???')>=0)});
+ T('hybrid-reveal',function(){S=newState();S.testMode=true;
+  S.pots[0]={pl:'moss',st:2,w:1,cd:0};S.pots[1]={pl:'fern',st:2,w:1,cd:0};
+  doHybrid(0,{h:HYBRIDS[0],nb:1});
+  A('hybrid-reveal',S.knowHyb.lant===1)});
+ T('tutorial',function(){var okT=true,d;for(d=1;d<=6;d++){if(!tutorialHint(d))okT=false}A('tutorial',okT&&tutorialHint(7)==='')});
+ T('shop-level',function(){S=newState();S.testMode=true;S.atmo=60;A('shop-lv2',shopLevel()===2);S.atmo=450;A('shop-lv4',shopLevel()===4);S.atmo=0;A('shop-lv1',shopLevel()===1)});
+ T('rain-chance',function(){A('rain-chance',getRainChance(10)>=0.25&&getRainChance(3)>getRainChance(10))});
+ T('negotiate',function(){S=newState();S.testMode=true;S.fav.baba.lv=3;
+  var o=negotiate('baba');
+  A('negotiate-out',o&&has(o,'ok'));
+  A('negotiate-once',negotiate('baba')===null)});
+ T('prefer-map',function(){var okP=true,c;for(c in CUST){if(!FLOWERPICK[c])okP=false}A('prefer-map',okP)});
+ T('gift-pick',function(){S=newState();S.testMode=true;S.inv=[{id:'purple',q:2}];
+  giftFlower('baba','purple');
+  A('gift-pick',S.inv.length===1&&S.inv[0].q===1)});
+ T('ending-new',function(){A('ending-new',String(endWakeBody()).indexOf('雪')>=0&&String(endWakeBody()).indexOf('真实的阳光')<0)});
+ T('day-ledger',function(){S=newState();S.testMode=true;S.inv=[];
+  S.pots[1]={pl:'viol',st:2,w:1};harvestPot(1);
+  A('day-ledger',S.dayT.picks===1)});
+ try{if(sv===null){try{localStorage.removeItem('wfsd1_save')}catch(e){}}else{try{localStorage.setItem('wfsd1_save',sv)}catch(e){}}}catch(e){}
+ S=s0;
+ window.__unitReport={pass:P,fail:F};
+ for(var i=0;i<F.length;i++)REPORT.errors.push('UT:'+F[i]);
 }
 function runPass(which){
  TT.n=0;
@@ -2382,7 +2645,8 @@ function installTeaPatch(which){
 function morningAuto(){
  var rota=['walk','fix','water','cat','dog'],k=rota[TT.n++%rota.length];
  var zi;
- if(potCount()===0&&S.seeds>0){for(zi=0;zi<S.potCap&&S.seeds>0;zi++){if(!S.pots[zi]){S.seeds--;S.pots[zi]={pl:pick(['moss','horn','viol']),st:0,w:0}}}}
+ for(zi=0;zi<S.pots.length&&S.seeds>0;zi++){if(!S.pots[zi]){S.seeds--;S.pots[zi]={pl:pick(['moss','horn','viol']),st:0,w:0}}}
+ var sbk;for(sbk in S.seedBag){if(S.seedBag[sbk]>0){S.seedBag[sbk]--;var planted=false;for(zi=0;zi<S.pots.length;zi++){if(!S.pots[zi]){S.pots[zi]={pl:sbk,st:0,w:0};planted=true;break}}if(planted)break}}
  var crit=false;
  for(zi=0;zi<S.pots.length;zi++){var zp=S.pots[zi];if(zp&&zp.pl&&!zp.w&&(zp.tag?99:(WITHER_DAYS[zp.pl]||3))-(zp.miss||0)<=1)crit=true}
  if(crit&&S.water>=2){waterAll();return}
@@ -2443,12 +2707,7 @@ function visitAuto(cid){
 function eveningAuto(){
  if(S.testMode&&S.water<2)S.water=2;
  var hi;for(hi=0;hi<S.pots.length;hi++){var hp=S.pots[hi];
-  if(hp&&hp.st===2&&!(hp.cd>0)){
-   var hy=YIELD[hp.pl];
-   if(hp.tag==='纽拉')hy={item:'nyurabloom',cd:4};
-   if(hp.pl==='vine')hy={item:'__water',q:2,cd:1};
-   if(hp.pl==='chime')hy={item:'__water',q:1,cd:2};
-   if(hy){if(hy.item==='__water'){S.water+=hy.q}else{addItem(hy.item,1)}hp.cd=hy.cd;S.counters.picks++}}}
+  if(hp&&hp.st===2&&!(hp.cd>0)){harvestPot(hi)}}
  settle();growPass();rollEvents();
  writeDiaryAuto();
  if(!S.script.boxMask){S.script.boxMask=1;addClue('01')}
@@ -2476,18 +2735,20 @@ function newGame(silent){
  S=newState();S.summary={};
  $('title').style.display='none';$('app').style.display='flex';
  $('log').innerHTML='';
+ applyShopTier();
  refreshPanel();updHud();
  if(!TEST)AU.warm();
  startDay();
 }
 function contGame(){
- var t=loadSave();if(!t||t.ver!==2){sys('(存档版本已更新,请开始新的三十天。)');return}
+ var t=loadSave();if(!t||(t.ver!==2&&t.ver!==3)){sys('(存档版本已更新,请开始新的三十天。)');return}
+ if(t.ver===2){t.ver=3;t.shopLv=1;t.knowHyb={};t.negoToday=0;t.negoBonus={};t.dayT={picks:0,trade:0}}
  S=t;
  var bk;for(bk in S.fav){if(!has(S.fav[bk],'met'))S.fav[bk].met=(S.fav[bk].seen>0?1:0)}
  fixPotLen();
  $('title').style.display='none';$('app').style.display='flex';
  $('log').innerHTML='';
- refreshPanel();updHud();
+ refreshPanel();updHud();applyShopTier();
  sys('(读取了第 '+S.day+' 天的存档,从这天早晨继续。)');
  startDay();
 }
@@ -2501,22 +2762,48 @@ function demoSetup(){
  $('title').style.display='none';$('app').style.display='flex';
  refreshPanel();updHud();daymark('第 8 天 · 晴');visitScene('baba',function(){});
 }
-function showHybridCodex(){
- var rows='',k,cnt=0;
+function knownHybCount(){var n=0,k;for(k=0;k<HYBRIDS.length;k++){if(HYBRIDS[k].c!=='MUT'&&S&&S.knowHyb&&S.knowHyb[HYBRIDS[k].c])n++}return n}
+function hybridCodexHtml(){
+ var rows='',k,cnt=0,known=0;
  for(k=0;k<HYBRIDS.length;k++){
   var h=HYBRIDS[k];
   if(h.c==='MUT')continue;
   cnt++;
-  rows+='<div style="display:flex;align-items:center;gap:10px;border-bottom:1px dashed #d9c9a8;padding:7px 0">'
-   +'<div style="flex:1"><b>'+PLANTS[h.a].n+' × '+PLANTS[h.b].n+'</b> → <b style="color:#a34a30">'+PLANTS[h.c].n+'</b>'
-   +'<div style="font-size:12px;color:#6f6250;line-height:1.5">'+PLANTS[h.c].d+'</div></div>'
-   +'<div style="color:#bd9245;font-size:12px;white-space:nowrap">'+PLANTS[h.c].r+'★</div></div>';
+  if(S&&S.knowHyb&&S.knowHyb[h.c]){
+   known++;
+   rows+='<div style="display:flex;align-items:center;gap:10px;border-bottom:1px dashed #d9c9a8;padding:7px 0">'
+    +'<div style="flex:1"><b>'+PLANTS[h.a].n+' × '+PLANTS[h.b].n+'</b> → <b style="color:#a34a30">'+PLANTS[h.c].n+'</b>'
+    +'<div style="font-size:12px;color:#6f6250;line-height:1.5">作用:'+PLANTS[h.c].use+'</div></div>'
+    +'<div style="color:#bd9245;font-size:12px;white-space:nowrap">'+PLANTS[h.c].r+'★</div></div>';
+  }else{
+   rows+='<div style="display:flex;align-items:center;gap:10px;border-bottom:1px dashed #d9c9a8;padding:7px 0;opacity:.55">'
+    +'<div style="flex:1"><b>??? × ???</b> → <b style="color:#a34a30">???</b>'
+    +'<div style="font-size:12px;color:#6f6250;line-height:1.5">还没有发现——亲手授粉试验,或用东西向帕维尔先生换一条「育种情报」。</div></div></div>';
+  }
  }
  rows+='<div style="padding:9px 0 2px;color:#3f4d59;line-height:1.7"><b>神秘种子</b>不需要邻居——单独种下,成熟时随机突变(7种):会说话的番茄 / 灯泡藤蔓 / 巧克力土 / 指针花 / 铅笔树 / 静默草 / 悲伤藤。</div>';
- modal('<h2>📚 杂交图鉴 · '+cnt+' 种配方</h2><p class="dim" style="font-size:13px">在花架面板点击成熟的亲本花,选「授粉」。亲本只休整3天,不受损。相邻才算邻居。</p>'+rows,
+ return '<h2>📚 杂交图鉴 · 已发现 '+known+'/'+cnt+' 种</h2><p class="dim" style="font-size:13px">在花架面板点击成熟的亲本花,选「授粉」。亲本只休整3天,不受损。相邻才算邻居。图鉴只记录你亲手发现(或打听来)的配方。</p>'+rows;
+}
+function showHybridCodex(){
+ modal(hybridCodexHtml(),
   [{h:'知道了',f:function(){closeModal()}}],{x:true});
 }
 window.showHybridCodex=showHybridCodex;
+/* 事件委托:生成的HTML用 data-act/data-arg 触发全局函数(避免内联事件) */
+document.addEventListener('click',function(e){
+ var el=e.target;
+ while(el&&el!==document.body){
+  if(el.getAttribute&&el.getAttribute('data-act')){
+   var fn=window[el.getAttribute('data-act')];
+   if(typeof fn==='function'){
+    var a=el.getAttribute('data-arg');
+    if(a===null||a===''){fn()}else{fn(isNaN(a)?a:Number(a))}
+   }
+   return;
+  }
+  el=el.parentNode;
+ }
+},false);
 function quitGame(){
  modal('<h2>退出游戏?</h2><p>进度已自动保存在本机,下次打开会从存档继续。</p>',[
   {h:'退出',cls:'dark',f:function(){
@@ -2531,7 +2818,7 @@ function quitGame(){
 (function(){
  $('titleArt').innerHTML=svgTitle();
  var sv=loadSave();
- if(sv&&sv.ver===2)$('btnCont').style.display='';
+ if(sv&&(sv.ver===2||sv.ver===3))$('btnCont').style.display='';
  $('btnNew').onclick=function(){AU.warm();newGame()};
  $('btnCont').onclick=function(){AU.warm();contGame()};
  var ts=document.querySelectorAll('.tab'),i;
@@ -2542,9 +2829,10 @@ function quitGame(){
  $('btnHelp').onclick=function(){
   modal('<h2>玩法</h2><p style="font-size:15px;line-height:2">'+
   '· <b>每天三段</b>:早晨做一件事 → 正午迎客 → 傍晚歇业后写日记/翻旧物箱/看夕阳,然后休息。<br>'+
-  '· <b>种花</b>:右侧花架点盆即可浇水/采摘/授粉,点空盆下种。花每天要浇水,连续3天不浇会<b>枯死</b>;花全枯死又没种子,花店就开不下去了。<br>'+
-  '· <b>采摘</b>:花成熟后会结果(果实、花束、材料各有用处),在花架面板点击即可收获。<br>'+
-  '· <b>杂交</b>:相邻的两盆成熟亲本可「授粉」——结出杂交种子(14种配方),亲本只休整3天,不会受损。神秘种子成熟后随机突变(7种)。<br>'+
+  '· <b>种花</b>:右侧花架点盆即可浇水/采摘/授粉,点空盆下种。<b>一颗种子一生只开一次花</b>:采摘后花盆腾空,六成概率根下留种。花每天消耗一份水分,缺水超过耐旱天数会<b>枯死</b>;花架全空又没有种子,店就开不下去了。<br>'+
+  '· <b>浇水</b>:整架浇透(耗水2,可撑两天);单盆可以选浇1份或2份。雨天自动补满。鼠标移到花盆上会变成小水壶。<br>'+
+  '· <b>采摘</b>:花成熟后会结果(果实、花束、材料各有用处),盆上会亮出「可采摘」的牌子;带 ✦ 的功能花各有妙用(点开看「作用」)。<br>'+
+  '· <b>杂交</b>:相邻的两盆成熟亲本可「授粉」——结出杂交种子。图鉴只记你亲手发现(或向帕维尔打听)的配方。神秘种子成熟后随机突变(7种)。<br>'+
   '· <b>修旧物</b>:散步捡回旧物,猜它原本是什么。猜对得工具,猜错损失零件——没有更重的惩罚。<br>'+
   '· <b>零件的去处</b>:修旧物、修镇上的设施、摆弄零件猜谜(猜对变成物件,猜错散架——有些物件,本身就连着过去),攒够8枚还能打造屋顶集雨槽(雨天多接两罐水)。<br>'+
   '· <b>客人</b>:以物易物(用他们想要的东西换)+ 说对话(倾听/安慰/提问/分享/开玩笑)。好感 Lv.1~7,他们会慢慢把心里的话交给你。<br>'+
