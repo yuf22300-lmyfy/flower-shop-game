@@ -253,6 +253,7 @@ body{
   <div class="card" id="modalCard"></div>
 </div>
 
+
 <script>
 'use strict';
 /* ================= 工具 ================= */
@@ -2148,7 +2149,7 @@ function endTell(){
 var TAB='pots';
 function setTab(t){TAB=t;var ts=document.querySelectorAll('.tab'),i;for(i=0;i<ts.length;i++){if(ts[i].getAttribute('data-t')===t)ts[i].className='tab on';else ts[i].className='tab'}refreshPanel()}
 function refreshPanel(){
- if(TEST)return;
+ if(TEST||!S)return;
  var p=$('panel'),h='';
  if(TAB==='pots'){
   var sbt='',x;for(x in S.seedBag){if(S.seedBag[x]>0)sbt+=' · '+PLANTS[x].n+'种×'+S.seedBag[x]}
