@@ -106,15 +106,46 @@ body{
 .pot.fx .ic{filter:drop-shadow(0 0 4px rgba(124,196,178,.85))}
 .pot .st b.pk{display:inline-block;color:#9a3f26;background:#f9e7c0;border-radius:4px;padding:0 5px;font-weight:800;margin:1px 0}
 .pot .st b.wet{color:#3f6f8a}
-#bigToast{position:fixed;left:50%;top:42%;transform:translate(-50%,-50%);z-index:80;
-  background:rgba(61,53,41,.93);color:#faf3e3;padding:14px 28px;border-radius:14px;font-size:19px;
-  font-family:"Microsoft YaHei",sans-serif;box-shadow:0 8px 30px rgba(0,0,0,.35);pointer-events:none;
-  animation:fadein .3s}
+#bigToast{position:fixed;left:50%;top:34%;transform:translate(-50%,-50%);z-index:80;
+  background:rgba(74,62,44,.78);color:#faf3e3;padding:10px 22px;border-radius:12px;font-size:16px;
+  font-family:"Microsoft YaHei",sans-serif;box-shadow:0 6px 22px rgba(0,0,0,.25);pointer-events:none;
+  animation:fadein .3s;border:1px solid rgba(250,243,227,.35)}
 body.shop2{--line:#d3c096;--paper:#fbf4e4}
 body.shop3{--line:#c9b183;--card:#fffef8;--acc2:#9a3f26}
 body.shop4{--line:#c2a86f;--gold:#caa14e;--bg:#f2e6cc}
 #growBar{height:8px;background:#e8dcc2;border-radius:5px;overflow:hidden;margin:6px 0}
 #growBar i{display:block;height:100%;background:linear-gradient(90deg,var(--sage),var(--gold));border-radius:5px}
+/* ================= 2D 世界(宫崎骏风) ================= */
+#main{position:relative}
+#worldWrap{position:relative;flex:1;min-width:0;min-height:0;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(180deg,#cfe7d8 0%,#e8f0d8 100%);border-radius:16px;overflow:hidden;
+  box-shadow:inset 0 2px 14px rgba(90,120,80,.18)}
+#world{display:block;touch-action:none}
+#joy{position:absolute;left:14px;bottom:14px;width:110px;height:110px;border-radius:50%;
+  background:rgba(255,252,240,.35);border:2px solid rgba(255,252,240,.6);z-index:20;display:none;touch-action:none}
+#joyKnob{position:absolute;left:35px;top:35px;width:40px;height:40px;border-radius:50%;
+  background:rgba(255,252,240,.85);box-shadow:0 2px 8px rgba(60,80,50,.3)}
+#btnAct2{position:absolute;right:16px;bottom:20px;width:64px;height:64px;border-radius:50%;z-index:20;display:none;
+  background:rgba(122,156,98,.92);color:#fff;font-size:15px;font-weight:800;border:3px solid #fff;
+  box-shadow:0 4px 14px rgba(40,60,30,.35);font-family:"Microsoft YaHei";cursor:pointer}
+#storyBox{background:linear-gradient(180deg,#fffdf4,#f8efd8);border:1px solid var(--line);border-radius:12px;
+  padding:10px 16px;min-height:64px;max-height:132px;overflow-y:auto;font-family:"KaiTi","STKaiti","SimSun",serif;
+  font-size:16px;line-height:1.75;box-shadow:0 2px 8px rgba(90,70,40,.08)}
+#storyBox .sw{display:inline-block;font-family:"Microsoft YaHei";font-size:12px;font-weight:700;color:#fff;
+  border-radius:6px;padding:1px 8px;margin-right:8px;vertical-align:2px}
+#choices{background:var(--card)}
+#logDrawer{position:fixed;left:0;top:0;bottom:0;width:min(430px,92vw);z-index:55;background:var(--paper);
+  border-right:2px solid var(--line);box-shadow:8px 0 30px rgba(40,30,15,.35);transform:translateX(-102%);
+  transition:transform .25s ease-out;padding:12px;display:none}
+body.log-open #logDrawer{transform:translateX(0)}
+#logDrawer h3{font-size:14px;color:var(--ink2);margin-bottom:8px}
+#logDrawerInner{overflow-y:auto;height:calc(100% - 34px);font-size:15px}
+@media (max-width:700px){
+  #worldWrap{min-height:46vh}
+  #joy{display:block}
+  #btnAct2{display:block}
+  #storyBox{min-height:54px;max-height:110px;font-size:15px}
+}
 .row{display:flex;align-items:center;gap:8px;background:var(--paper);border:1px solid var(--line);
   border-radius:10px;padding:8px 10px;margin-bottom:8px}
 .row .grow{flex:1;min-width:0}
@@ -236,6 +267,8 @@ body.shop4{--line:#c2a86f;--gold:#caa14e;--bg:#f2e6cc}
       <div class="chip frag"><b id="stFrag">0</b><span>真相碎片 ◈</span></div>
     </div>
     <div id="tools">
+      <button class="mini" id="btnActs">📋 行动</button>
+      <button class="mini" id="btnLog">📖 记录</button>
       <button class="mini" id="btnMute">🔊 音效</button>
       <button class="mini" id="btnHelp">？玩法</button>
       <button class="mini" id="btnRestart">重新开始</button>
@@ -245,7 +278,12 @@ body.shop4{--line:#c2a86f;--gold:#caa14e;--bg:#f2e6cc}
 
   <div id="main">
     <div id="left">
-      <div id="log"></div>
+      <div id="worldWrap">
+        <canvas id="world"></canvas>
+        <div id="joy"><div id="joyKnob"></div></div>
+        <button id="btnAct2" type="button">互动</button>
+      </div>
+      <div id="storyBox" style="display:none"></div>
       <div id="choices"><div class="tip">……</div></div>
     </div>
     <div id="side">
@@ -261,6 +299,8 @@ body.shop4{--line:#c2a86f;--gold:#caa14e;--bg:#f2e6cc}
     </div>
   </div>
 </div>
+
+<div id="logDrawer"><h3>📖 故事记录<button class="mini" id="btnLogClose" style="float:right;margin-top:-4px">收起</button></h3><div id="logDrawerInner"><div id="log" style="min-height:0;max-height:none"></div></div></div>
 
 <div class="overlay" id="modal" style="display:none">
   <div class="card" id="modalCard"></div>
@@ -859,7 +899,16 @@ function newState(){
 function save(){try{localStorage.setItem('wfsd1_save',JSON.stringify(S))}catch(e){}}
 function loadSave(){try{var t=localStorage.getItem('wfsd1_save');if(!t)return null;return JSON.parse(t)}catch(e){return null}}
 /* ================= 渲染基础 ================= */
-function msg(html,cls){var d=document.createElement('div');d.className='msg '+(cls||'narr');d.innerHTML=html;var L=$('log');L.appendChild(d);L.scrollTop=L.scrollHeight}
+function msg(html,cls){var d=document.createElement('div');d.className='msg '+(cls||'narr');d.innerHTML=html;var L=$('log');L.appendChild(d);L.scrollTop=L.scrollHeight;
+ if(WORLD.on&&!TEST)storyPush(html,cls);
+}
+function storyPush(html,cls){
+ var sb=$('storyBox');if(!sb)return;
+ var d=document.createElement('div');d.style.marginBottom='6px';d.className=cls||'';d.innerHTML=html;
+ sb.appendChild(d);
+ while(sb.childNodes.length>3)sb.removeChild(sb.firstChild);
+ sb.scrollTop=sb.scrollHeight;
+}
 function narr(t){msg(esc(t),'narr')}
 function sys(t){msg(esc(t),'sys')}
 function meSay(t){msg('<span class="who">你</span>'+esc(t),'me')}
@@ -1078,14 +1127,20 @@ function hybridCheck(i){ // 相邻的两盆成熟亲本(花期休息中不可授
   if((p.pl===h.b)&&nb2!==null)out.push({h:h,nb:nb2});}
  return out;
 }
-function doHybrid(i,rec){ // 授粉结出杂交种子;两位亲本进入花期休息,都不会变坏
+function doHybrid(i,rec){ // 授粉:两位亲本完成使命,花盆腾空;各五成概率在根下留种
  S.seedBag[rec.h.c]=(S.seedBag[rec.h.c]||0)+1;
  S.knowHyb[rec.h.c]=1;
- S.pots[i].cd=3;S.pots[rec.nb].cd=3;
+ var pa=S.pots[i].pl,pb=S.pots[rec.nb].pl;
+ S.pots[i]=null;S.pots[rec.nb]=null;
  S.summary.hyb=(S.summary.hyb||[]).concat([PLANTS[rec.h.c].n]);
- narr('你用棉签轻轻把花粉从'+PLANTS[rec.h.a].n+'递给'+PLANTS[rec.h.b].n+'。两位亲本打了个盹,进入花期休息(3天)。');
+ narr('你用棉签轻轻把花粉从'+PLANTS[rec.h.a].n+'递给'+PLANTS[rec.h.b].n+'。两位亲本把这一季的生命,都给了这粒种子——花盆空了。');
  gain('结出了一粒'+PLANTS[rec.h.c].n+'种子!到「花架」面板的空盆里种下它。');
  narr(PLANTS[rec.h.c].d);
+ var keep,Sb;
+ keep=S.testMode?1:(rnd()<0.5?1:0);Sb=seedOf(pa);
+ if(keep&&Sb){if(Sb==='base')S.seeds+=1;else S.seedBag[Sb]=(S.seedBag[Sb]||0)+1;gain(PLANTS[pa].n+'的根下,留了一粒种子。')}
+ keep=S.testMode?1:(rnd()<0.5?1:0);Sb=seedOf(pb);
+ if(keep&&Sb){if(Sb==='base')S.seeds+=1;else S.seedBag[Sb]=(S.seedBag[Sb]||0)+1;gain(PLANTS[pb].n+'的根下,留了一粒种子。')}
  atmoGain(5);S.counters.hyb++;AU.chime();refreshPanel();save();
 }
 function flowerSvg(pl,x,y,sz){
@@ -1239,6 +1294,15 @@ function startDay(){
 }
 /* ================= 早晨 ================= */
 function morningActions(){
+ if(WORLD.on&&!TEST){worldMorning();return}
+ morningActionsMenu();
+}
+function worldMorning(){
+ S.phase=0;updHud();setChoices('',[]);
+ if(WORLD.scene!=='shop')worldSet('shop');
+ bigToast('🌤 早晨 · 自由活动——走近物件互动(键盘 E / 点按),「📋 行动」有完整菜单');
+}
+function morningActionsMenu(){
  S.phase=0;updHud();
  var acts=[],i,pend=pendingRelic();
  var thirsty=anyThirsty();
@@ -1317,6 +1381,7 @@ function pickVisitors(preview){
  return need;
 }
 function noon(){
+ if(WORLD.on&&!TEST){worldNoon();return}
  if(S.weather==='fog'&&!hasPot('lant',2)){
   narr('辐射雾把街盖住了。这样的天,没人会出门——除了雾本身。');
   narr('你把"暂时歇业"的牌子挂出去,回屋里摆弄花盆。(有夜光灯笼的话,雾天也能营业)');
@@ -1697,6 +1762,14 @@ function rollEvents(){
  }
 }
 function eveningActions(){
+ if(WORLD.on&&!TEST){worldEvening();return}
+ eveningActionsMenu();
+}
+function worldEvening(){
+ S.phase=2;updHud();setChoices('',[]);
+ bigToast('🌇 傍晚 · 写日记/翻旧物/看夕阳,困了就上床睡觉');
+}
+function eveningActionsMenu(){
  var acts=[];
  acts.push({h:'看一会儿夕阳',s:'废土的黄昏,是一天里最温柔的时刻(+氛围)',tag:'休息',k:'sunset'});
  acts.push({h:'写日记',s:'歇业之后,把今天的事写下来'+(S.tools.pen?'(钢笔在手)':'(需要一支铅笔——铅笔树结,或翻翻旧物箱)'),tag:'记录',k:'diary',d:S.flags.diaryToday||(!S.tools.pen&&!hasCat('pencil'))});
@@ -2442,7 +2515,7 @@ function potClick(i){
  var hy=hybridCheck(i);
  if(p.st===2&&hy.length>0){
   var k2;for(k2=0;k2<hy.length;k2++){var rec=hy[k2];
-   acts.push({h:'授粉:'+PLANTS[rec.h.a].n+' × '+PLANTS[rec.h.b].n+' → '+PLANTS[rec.h.c].n,s:'亲本不受损,结出种子后休整3天',tag:'杂交',f:(function(rc){return function(){closeModal();doHybrid(i,rc)}})(rec)});
+   acts.push({h:'授粉:'+PLANTS[rec.h.a].n+' × '+PLANTS[rec.h.b].n+' → '+PLANTS[rec.h.c].n,s:'两位亲本完成使命,花盆腾空;结出杂交种子,各五成留种',tag:'杂交',f:(function(rc){return function(){closeModal();doHybrid(i,rc)}})(rec)});
   }
  }
  if(p.pl==='echo'&&p.st===2)acts.push({h:'听一听(要专门花一个早晨,在行动里选)',tag:'回声',f:function(){closeModal();narr('回声花的收音,值得一个安静的整个早晨。')}});
@@ -2515,7 +2588,653 @@ function fxLoop(){
  step();
 }
 var _dark=dark;dark=function(t){FX.ash=6;_dark(t)};
-/* ================= 自测 ================= */
+/* ================= 2D 世界 · 宫崎骏风 ================= */
+var WORLD={on:false,scene:'shop',W:960,H:540,px:480,py:420,dir:'down',step:0,moving:false,
+ keys:{},jx:0,jy:0,tx:null,ty:null,npcs:[],remain:[],t:0,clouds:[],motes:[],rain:[],butterflies:[],frozen:false};
+function worldOn(){
+ if(TEST)return;
+ WORLD.on=true;WORLD.scene='shop';WORLD.px=480;WORLD.py=420;WORLD.tx=null;WORLD.ty=null;
+ WORLD.npcs=[];WORLD.remain=[];
+ $('storyBox').style.display='block';
+ worldResize();
+}
+function worldSet(sc){WORLD.scene=sc;WORLD.tx=null;WORLD.ty=null;
+ if(sc==='shop'){WORLD.px=480;WORLD.py=440}else{WORLD.px=140;WORLD.py=430}
+}
+function worldResize(){
+ var wrap=$('worldWrap'),cv=$('world');if(!wrap||!cv)return;
+ var w=wrap.clientWidth,h=wrap.clientHeight;
+ if(w<50)w=600;if(h<50)h=340;
+ var s=Math.min(w/WORLD.W,h/WORLD.H);
+ cv.width=Math.round(WORLD.W*s);cv.height=Math.round(WORLD.H*s);
+ cv.style.width=cv.width+'px';cv.style.height=cv.height+'px';
+}
+function wXY(e){ // 屏幕事件→世界坐标
+ var cv=$('world'),r=cv.getBoundingClientRect();
+ return {x:(e.clientX-r.left)/r.width*WORLD.W,y:(e.clientY-r.top)/r.height*WORLD.H};
+}
+function worldPotPos(i){ // 花架槽位坐标(6列×最多3行)
+ var cols=6,row=Math.floor(i/cols),col=i%cols;
+ var x=648+col*52,y=(S&&S.potCap>6?(S.potCap>12?236:268):302)+row*68;
+ return {x:x,y:y};
+}
+function worldInteractables(){
+ var L=[];
+ if(!S)return L;
+ if(WORLD.scene==='shop'){
+  var i;
+  for(i=0;i<S.potCap;i++)(function(ix){
+   var pp=worldPotPos(ix),p=S.pots[ix];
+   var nm=p?(PLANTS[p.pl].n+(p.tag?'「'+p.tag+'」':'')+(p.st===2?' ·成熟':'')):'空盆';
+   L.push({x:pp.x,y:pp.y,r:36,label:'🪴 '+nm,act:function(){potClick(ix)}});
+  })(i);
+  if(S.phase===0){
+   L.push({x:480,y:492,r:52,label:'🚪 出门(街道)',act:function(){worldSet('street');AU.click()}});
+   L.push({x:845,y:150,r:56,label:'🛠️ 工作台(修东西)',act:function(){morningActionsMenu()}});
+   if(S.cat)L.push({x:726,y:330,r:46,label:'🐱 给'+S.catName+'梳毛',act:function(){brushCat()}});
+   if(S.dog)L.push({x:866,y:470,r:46,label:'🐕 陪旺财玩',act:function(){playDog()}});
+  }else if(S.phase===1){
+   L.push({x:480,y:492,r:40,label:'🚪 门口',act:function(){narr('客人还在店里呢。先陪 TA 们聊聊吧。')}});
+  }else if(S.phase===2){
+   L.push({x:290,y:392,r:52,label:'📒 柜台 · 写日记',act:function(){writeDiary()}});
+   L.push({x:614,y:462,r:48,label:'📦 翻旧物箱',act:function(){boxScene()}});
+   L.push({x:480,y:492,r:52,label:'🌇 门口看夕阳',act:function(){sunset()}});
+   L.push({x:76,y:300,r:56,label:'🛏️ 睡觉 · 迎接明天',act:function(){advance()}});
+   if(S.pursue&&!S.ended)L.push({x:912,y:392,r:56,label:'🌅 朝西边走走',cls:'dark',act:function(){pursuitScene()}});
+   if(has(S.unlocked,'lampPost'))L.push({x:560,y:392,r:44,label:'💡 留一盏灯(夜营)',act:function(){nightLamp()}});
+  }
+ }else{
+  if(S.phase===0){
+   L.push({x:740,y:392,r:60,label:'🌳 去废墟深处走走',act:function(){walkScene()}});
+  }
+  L.push({x:120,y:430,r:56,label:'🏠 回到店里',act:function(){worldSet('shop');AU.click()}});
+ }
+ return L;
+}
+function worldNpcLeave(){WORLD.npcs=[]}
+function worldNoon(){
+ if(S.weather==='fog'&&!hasPot('lant',2)){
+  narr('辐射雾把街盖住了。这样的天,没人会出门——除了雾本身。');
+  narr('你把"暂时歇业"的牌子挂出去,回屋里摆弄花盆。(有夜光灯笼的话,雾天也能营业)');
+  worldSet('shop');evening();return;
+ }
+ var v=pickVisitors(false);S.visitors=v;WORLD.remain=v.slice(0);
+ worldSet('shop');WORLD.px=480;WORLD.py=430;setChoices('',[]);
+ var spots=[[330,436],[560,436],[726,436]];
+ var i;
+ for(i=0;i<v.length;i++){
+  WORLD.npcs.push({cid:v[i],x:480,y:530,tx:spots[i%3][0],ty:spots[i%3][1],arrived:false,talked:false,ph:rnd()*6});
+ }
+ narr('正午。门口的风铃响了一声。');
+ bigToast('🔔 客人来了——走到 TA 面前,聊聊今天');
+}
+function worldTalk(cid,npc){
+ if(npc.talking)return;
+ npc.talking=true;
+ WORLD.frozen=true;
+ visitScene(cid,function(){
+  npc.talking=false;WORLD.frozen=false;
+  WORLD.npcs=WORLD.npcs.filter(function(n){return n!==npc});
+  WORLD.remain=WORLD.remain.filter(function(c){return c!==cid});
+  if(WORLD.remain.length===0&&S.phase===1){evening()}
+  else if(WORLD.remain.length>0){bigToast('还剩 '+WORLD.remain.length+' 位客人')}
+ });
+}
+/* ---------- 绘制 ---------- */
+function wRoundRect(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
+function wSkyColor(){
+ if(!S)return {a:'#9fd4e8',b:'#d8f0f2'};
+ if(S.phase===2)return {a:'#f2b56a',b:'#f8e3b0'};
+ if(S.weather==='rain')return {a:'#8fb4c4',b:'#c2d8d8'};
+ if(S.weather==='fog')return {a:'#b8c8c4',b:'#dfe8e0'};
+ return {a:'#9fd4e8',b:'#d8f0f2'};
+}
+function wCloud(c,x,y,s){
+ c.fillStyle='rgba(255,255,255,.85)';
+ c.beginPath();c.ellipse(x,y,38*s,16*s,0,0,6.29);c.fill();
+ c.beginPath();c.ellipse(x+26*s,y-8*s,26*s,14*s,0,0,6.29);c.fill();
+ c.beginPath();c.ellipse(x-26*s,y-4*s,22*s,12*s,0,0,6.29);c.fill();
+}
+/* ---- 吉卜力水彩工具 ---- */
+function wH(n){var x=Math.sin(n*127.1+13.7)*43758.5;return x-Math.floor(x)} // 稳定伪随机(不闪烁)
+function wBlob(c,x,y,w,h,color){ // 圆润有机团块
+ c.fillStyle=color;c.beginPath();
+ c.moveTo(x-w,y);
+ c.bezierCurveTo(x-w,y-h*0.9,x-w*0.45,y-h,x,y-h);
+ c.bezierCurveTo(x+w*0.45,y-h,x+w,y-h*0.9,x+w,y);
+ c.bezierCurveTo(x+w*0.6,y+h*0.55,x-w*0.6,y+h*0.55,x-w,y);
+ c.closePath();c.fill();
+}
+function wScatter(c,x,y,w,h,color,n,r,alpha){ // 蓬松斑点簇(水彩碎笔触)
+ c.fillStyle=color;c.globalAlpha=alpha===undefined?0.8:alpha;
+ var i;for(i=0;i<n;i++){
+  var sx=x+(wH(i*3.7+1)-0.5)*w,sy=y+(wH(i*7.3+2)-0.5)*h,sr=r*(0.5+wH(i*5.1+3)*0.8);
+  c.beginPath();c.arc(sx,sy,sr,0,6.29);c.fill();
+ }
+ c.globalAlpha=1;
+}
+function wFlowerCluster(c,x,y,col,n){ // 粉花簇(五瓣小花)
+ var i;for(i=0;i<n;i++){
+  var fx=x+(wH(i*11.3+40)-0.5)*34,fy=y+(wH(i*13.7+41)-0.5)*16,k;
+  c.fillStyle=col;
+  for(k=0;k<5;k++){var a=k*1.257+WORLD.t*0.08;c.beginPath();c.arc(fx+Math.cos(a)*2.6,fy+Math.sin(a)*2.6,2,0,6.29);c.fill()}
+  c.fillStyle='#f8e28a';c.beginPath();c.arc(fx,fy,1.6,0,6.29);c.fill();
+ }
+}
+function wBush(c,x,y,w,h,seed){ // 吉卜力灌木: 深底+亮斑+碎叶+花
+ wBlob(c,x,y,w,h,'#5f8f42');
+ wScatter(c,x,y-h*0.3,w*0.9,h*0.55,'#7fae52',10,5,0.85);
+ wScatter(c,x-w*0.2,y-h*0.15,w*0.5,h*0.3,'#93c25c',7,3.6,0.8);
+ wScatter(c,x+w*0.25,y-h*0.2,w*0.45,h*0.3,'#4d7a35',9,4.4,0.5);
+ wFlowerCluster(c,x,y-h*0.45,seed%2?'#f0b8cc':'#f8d8e8',3+seed%3);
+}
+function wCabbage(c,x,y,r){ // 卷心菜: 圆叶包+高光碎点
+ wBlob(c,x,y,r,r*0.72,'#6f9b4d');
+ wScatter(c,x,y-r*0.2,r*1.2,r*0.5,'#a5c845',5,2.8,0.9);
+ wScatter(c,x+r*0.3,y,r*0.5,r*0.5,'#557d3a',4,2.2,0.5);
+ c.strokeStyle='rgba(74,110,52,.5)';c.lineWidth=1.2;
+ c.beginPath();c.arc(x,y-r*0.1,r*0.62,0.3,2.4);c.stroke();
+}
+function wTallPlant(c,x,y,h,seed){ // 高秆植物(玉米/芦苇感)
+ var i,n=3+seed%2;
+ for(i=0;i<n;i++){
+  var px=x+(i-n/2)*7+(wH(seed*7+i)-0.5)*5,sw=Math.sin(WORLD.t*0.9+seed+i)*3;
+  c.strokeStyle=i%2?'#5f8f42':'#6fa04a';c.lineWidth=3.4;
+  c.beginPath();c.moveTo(px,y);c.quadraticCurveTo(px+sw,y-h*0.6,px+sw*1.6,y-h);c.stroke();
+  c.fillStyle=i%2?'#7fae52':'#93c25c';
+  c.beginPath();c.ellipse(px+sw*1.6,y-h,3.2,7,sw*0.05,0,6.29);c.fill();
+ }
+}
+function wButterfly(c,x,y,col,sc){ // 黄蝴蝶(拍翅)
+ sc=sc||1;
+ var flap=Math.abs(Math.sin(WORLD.t*9+x*0.05));
+ c.fillStyle=col;
+ c.beginPath();c.ellipse(x-3*sc,y,3.6*sc,2+2.8*flap*sc,-0.5,0,6.29);c.fill();
+ c.beginPath();c.ellipse(x+3*sc,y,3.6*sc,2+2.8*flap*sc,0.5,0,6.29);c.fill();
+ c.fillStyle='#5a4638';c.beginPath();c.ellipse(x,y,1*sc,2.6*sc,0,0,6.29);c.fill();
+}
+function wDrawPlant(c,x,y,sz,p){
+ if(!p||!p.pl)return;
+ var pl=PLANTS[p.pl],cc=pl.ic.c,ss=pl.ic.s,f=pl.ic.f;
+ if(p.st===0){c.fillStyle=ss;c.beginPath();c.arc(x,y-4,3,0,6.29);c.fill();return}
+ if(p.st===1){
+  c.strokeStyle=ss;c.lineWidth=2;c.beginPath();c.moveTo(x,y);c.lineTo(x,y-12);c.stroke();
+  c.beginPath();c.moveTo(x,y-7);c.quadraticCurveTo(x-8,y-9,x-9,y-3);c.stroke();
+  return;
+ }
+ // 吉卜力叶丛底(蓬松碎叶,盆位不对称)
+ var sd=Math.floor(x);
+ wScatter(c,x+(wH(sd)-0.5)*6,y-9,19,13,ss,9,3.4,0.8);
+ wScatter(c,x+(wH(sd+1)-0.5)*8,y-12,14,10,'#557d3a',4,2.2,0.4);
+ c.strokeStyle=ss;c.lineWidth=2;c.beginPath();c.moveTo(x,y);c.quadraticCurveTo(x-2,y-10,x,y-16);c.stroke();
+ c.fillStyle=cc;
+ var k;
+ if(f==='clump'){for(k=-1;k<=1;k++){c.beginPath();c.arc(x+k*5,y-16-(k===0?4:0),5-Math.abs(k),0,6.29);c.fill()}}
+ else if(f==='frond'){for(k=-1;k<=1;k++){c.beginPath();c.moveTo(x,y-12);c.quadraticCurveTo(x+k*8,y-18,x+k*11,y-24);c.lineWidth=1.6;c.strokeStyle=cc;c.stroke()}}
+ else if(f==='bell'){c.beginPath();c.moveTo(x-5,y-24);c.lineTo(x-5,y-16);c.lineTo(x+5,y-16);c.lineTo(x+5,y-24);c.quadraticCurveTo(x,y-28,x-5,y-24);c.fill();c.beginPath();c.arc(x+8,y-18,3,0,6.29);c.fill()}
+ else if(f==='trump'){c.beginPath();c.moveTo(x-2,y-24);c.lineTo(x-1,y-30);c.lineTo(x+8,y-27);c.lineTo(x+8,y-21);c.lineTo(x-1,y-20);c.closePath();c.fill()}
+ else if(f==='spike'){wRoundRect(c,x-4,y-30,9,18,4);c.fill();c.strokeStyle=ss;c.lineWidth=1.2;for(k=0;k<3;k++){c.beginPath();c.moveTo(x-4,y-26+k*5);c.lineTo(x-9,y-28+k*5);c.stroke();c.beginPath();c.moveTo(x+5,y-26+k*5);c.lineTo(x+10,y-28+k*5);c.stroke()}}
+ else if(f==='star'){c.beginPath();for(k=0;k<5;k++){var a1=-Math.PI/2+k*1.257,a2=a1+0.628;c.lineTo(x+Math.cos(a1)*8,y-22+Math.sin(a1)*8);c.lineTo(x+Math.cos(a2)*3.4,y-22+Math.sin(a2)*3.4)}c.closePath();c.fill()}
+ else if(f==='bulb'){c.beginPath();c.arc(x,y-24,6,0,6.29);c.fill();c.strokeStyle=cc;c.globalAlpha=.5;c.beginPath();c.arc(x,y-24,10,0,6.29);c.stroke();c.globalAlpha=1}
+ else if(f==='vine'){c.beginPath();c.moveTo(x,y-10);c.quadraticCurveTo(x+8,y-16,x+6,y-26);c.lineWidth=2;c.strokeStyle=ss;c.stroke();c.fillStyle=cc;c.beginPath();c.arc(x+6,y-26,4,0,6.29);c.fill();c.beginPath();c.arc(x+3,y-16,3,0,6.29);c.fill()}
+ else if(f==='droop'){for(k=-1;k<=1;k++){c.beginPath();c.moveTo(x,y-14);c.quadraticCurveTo(x+k*8,y-16,x+k*10,y-8);c.lineWidth=1.6;c.strokeStyle=cc;c.stroke()}}
+ else{c.beginPath();c.arc(x,y-22,6,0,6.29);c.fill()}
+ if(pl.fx){c.strokeStyle='rgba(124,196,178,.8)';c.lineWidth=1.6;c.beginPath();c.arc(x,y-18,15,0,6.29);c.stroke()}
+}
+function wDrawPot(c,x,y,p,label){
+ c.fillStyle='rgba(60,50,30,.18)';c.beginPath();c.ellipse(x,y+16,17,5,0,0,6.29);c.fill();
+ var ready=p&&p.st===2&&(p.cd||0)<=0&&(YIELD[p.pl]||p.pl==='vine'||p.pl==='chime'||p.tag==='纽拉');
+ if(ready){c.strokeStyle='rgba(189,146,69,.9)';c.lineWidth=2.4;c.beginPath();c.arc(x,y-2,20,0,6.29);c.stroke()}
+ c.fillStyle='#b06f4a';c.beginPath();c.moveTo(x-14,y);c.lineTo(x+14,y);c.lineTo(x+10,y+14);c.lineTo(x-10,y+14);c.closePath();c.fill();
+ c.fillStyle='#c98560';wRoundRect(c,x-15,y-3,30,6,2);c.fill();
+ wDrawPlant(c,x,y,p?38:38,p);
+ if(p&&!p.w){c.fillStyle='#c9856a';c.font='bold 11px Microsoft YaHei';c.textAlign='center';c.fillText('💧✗',x+13,y-28)}
+ if(p&&p.tag){c.fillStyle='#e88ab0';c.beginPath();c.moveTo(x-10,y+2);c.lineTo(x-2,y+2);c.lineTo(x-6,y-7);c.closePath();c.fill()}
+ if(p&&p.st===2&&(p.cd||0)>0){c.fillStyle='rgba(111,98,80,.8)';c.font='10px Microsoft YaHei';c.textAlign='center';c.fillText('休'+p.cd,x+15,y+6)}
+}
+function wDrawPerson(c,x,y,opt){ // opt:{dir,step,col,hair,hat,tall,small,skin,bob}
+ var s=opt.small?0.86:1.16;
+ var lift=opt.bob?Math.sin(WORLD.t*3+(opt.ph||0))*1.6:0;
+ c.fillStyle='rgba(50,45,25,.22)';c.beginPath();c.ellipse(x,y+2,14*s,4.8*s,0,0,6.29);c.fill();
+ var H=(opt.tall?48:40)*s;
+ var top=y-H+lift;
+ var OL='rgba(90,72,48,.55)';
+ // 身体(带描边+光影)
+ c.fillStyle=opt.col;
+ var bw=(opt.broad?18:15)*s;
+ c.beginPath();c.moveTo(x-bw,top+13*s);c.lineTo(x+bw,top+13*s);c.lineTo(x+bw*0.72,y-6+lift);c.lineTo(x-bw*0.72,y-6+lift);c.closePath();c.fill();
+ c.strokeStyle=OL;c.lineWidth=1.2;c.stroke();
+ c.fillStyle='rgba(255,250,235,.18)';c.beginPath();c.moveTo(x-bw,top+13*s);c.lineTo(x-bw*0.45,top+13*s);c.lineTo(x-bw*0.3,y-6+lift);c.lineTo(x-bw*0.72,y-6+lift);c.closePath();c.fill();
+ // 手臂(走路摆动)
+ var ap=opt.step?Math.sin(WORLD.t*10)*4*s:Math.sin((opt.ph||0)+WORLD.t*1.2)*1.2*s;
+ c.strokeStyle=opt.col;c.lineWidth=4.5*s;c.lineCap='round';
+ c.beginPath();c.moveTo(x-bw+2,top+15*s);c.lineTo(x-bw-1+ap,top+24*s);c.stroke();
+ c.beginPath();c.moveTo(x+bw-2,top+15*s);c.lineTo(x+bw+1-ap,top+24*s);c.stroke();
+ c.lineCap='butt';
+ c.fillStyle=opt.skin||'#f2d4b8';c.beginPath();c.arc(x-bw-1+ap,top+25*s,2.2*s,0,6.29);c.fill();c.beginPath();c.arc(x+bw+1-ap,top+25*s,2.2*s,0,6.29);c.fill();
+ // 腿
+ c.strokeStyle='#6b5a44';c.lineWidth=3.4*s;
+ var lp=opt.step?Math.sin(WORLD.t*10)*3.5*s:0;
+ c.beginPath();c.moveTo(x-4,y-6+lift);c.lineTo(x-4-lp,y+1);c.stroke();
+ c.beginPath();c.moveTo(x+4,y-6+lift);c.lineTo(x+4+lp,y+1);c.stroke();
+ // 围裙(盖在身前)
+ if(opt.apron){c.fillStyle='rgba(250,246,232,.88)';c.beginPath();c.moveTo(x-6.5,top+16*s);c.lineTo(x+6.5,top+16*s);c.lineTo(x+5.4,y-7+lift);c.lineTo(x-5.4,y-7+lift);c.closePath();c.fill();
+  c.strokeStyle='rgba(180,160,120,.5)';c.lineWidth=0.8;c.stroke();
+  c.strokeStyle='rgba(180,160,120,.65)';c.lineWidth=0.8;c.beginPath();c.moveTo(x-3.6,top+20*s);c.lineTo(x+3.6,top+20*s);c.stroke();c.beginPath();c.moveTo(x-3.2,top+23*s);c.lineTo(x+3.2,top+23*s);c.stroke();}
+ // 头(带描边)
+ c.fillStyle=opt.skin||'#f2d4b8';
+ c.beginPath();c.arc(x,top+7*s,6.5*s,0,6.29);c.fill();
+ c.strokeStyle=OL;c.lineWidth=1.1;c.stroke();
+ c.fillStyle='rgba(224,150,120,.35)';c.beginPath();c.arc(x-4*s,top+9*s,1.6*s,0,6.29);c.fill();c.beginPath();c.arc(x+4*s,top+9*s,1.6*s,0,6.29);c.fill(); // 腮红
+ c.fillStyle=opt.hair||'#5a4a3a';
+ c.beginPath();c.arc(x,top+5*s,6.7*s,Math.PI,0);c.fill();
+ c.beginPath();c.moveTo(x-6.7*s,top+5*s);c.quadraticCurveTo(x-7.4*s,top+9.5*s,x-5.6*s,top+11*s);c.lineTo(x-4.4*s,top+6.4*s);c.closePath();c.fill();
+ c.beginPath();c.moveTo(x+6.7*s,top+5*s);c.quadraticCurveTo(x+7.4*s,top+9.5*s,x+5.6*s,top+11*s);c.lineTo(x+4.4*s,top+6.4*s);c.closePath();c.fill();
+ if(opt.bun){c.fillStyle=opt.hair||'#5a4a3a';c.beginPath();c.arc(x,top-1,3.4*s,0,6.29);c.fill();c.strokeStyle=OL;c.lineWidth=0.9;c.stroke()}
+ if(opt.glasses){c.strokeStyle='#3f4d59';c.lineWidth=1;c.strokeRect(x-4.5,top+6,3.6,3);c.strokeRect(x+1,top+6,3.6,3)}
+ if(opt.dir==='down'){c.fillStyle='#3a2f26';c.beginPath();c.arc(x-2.2,top+8,0.9,0,6.29);c.fill();c.beginPath();c.arc(x+2.2,top+8,0.9,0,6.29);c.fill()}
+ else if(opt.dir==='left'){c.fillStyle='#3a2f26';c.beginPath();c.arc(x-3.4,top+8,0.9,0,6.29);c.fill()}
+ else if(opt.dir==='right'){c.fillStyle='#3a2f26';c.beginPath();c.arc(x+3.4,top+8,0.9,0,6.29);c.fill()}
+ if(opt.camera){c.fillStyle='#3a3a3a';wRoundRect(c,x+6,top+16*s,7,5,1);c.fill()}
+ if(opt.caseB){c.fillStyle='#8a5a3a';wRoundRect(c,x-22,top+20*s,12,14,2);c.fill();c.strokeStyle='rgba(90,72,48,.5)';c.lineWidth=1;c.stroke()}
+ if(opt.hat){ // 草帽+红丝带
+  c.fillStyle='#e8d08a';c.beginPath();c.ellipse(x,top+3*s,11*s,4*s,0,0,6.29);c.fill();
+  c.strokeStyle=OL;c.lineWidth=1;c.stroke();
+  c.beginPath();c.ellipse(x,top-0.5*s,6*s,4.4*s,0,Math.PI,0);c.fill();c.stroke();
+  c.strokeStyle='#c25b3c';c.lineWidth=2;c.beginPath();c.ellipse(x,top+2.6*s,11*s,3.5*s,0,0,Math.PI);c.stroke();
+ }
+ if(opt.cap){c.fillStyle='#7a6a8a';c.beginPath();c.arc(x,top+4*s,6.4*s,Math.PI,0);c.fill();c.strokeStyle=OL;c.lineWidth=1;c.stroke();c.fillRect(x,top+3.4*s,9*s,2.4)}
+}
+var NPC_LOOK={
+ pu:{col:'#8a9b7a',tall:true,hat:true},
+ baba:{col:'#a58ab0',bun:true,small:false,hair:'#d8d0c8'},
+ sasha:{col:'#d98a4a',cap:true,caseB:true},
+ vera:{col:'#5a8ab8',hair:'#4a3a30',camera:true},
+ ivan:{col:'#5a6b7a',broad:true,hair:'#3a3a3a'},
+ pavel:{col:'#bd9245',glasses:true,hair:'#d8d8d8'},
+ nyura:{col:'#d98aa5',small:true,hair:'#6a4a3a'}
+};
+function wDrawShop(c){
+ var sky=wSkyColor();
+ // 墙
+ var g=c.createLinearGradient(0,0,0,340);g.addColorStop(0,'#f6eed6');g.addColorStop(1,'#efe2c2');
+ c.fillStyle=g;c.fillRect(0,0,960,340);
+ // 墙面水彩晕染
+ var si;for(si=0;si<14;si++){
+  var wx2=wH(si*17.3)*960,wy2=wH(si*23.9)*300;
+  wBlob(c,wx2,wy2,46+wH(si*7.7)*40,26+wH(si*11.1)*18,si%3?'rgba(214,192,148,.09)':'rgba(250,244,222,.15)');
+ }
+ // 墙裙木条
+ c.fillStyle='#d9c096';c.fillRect(0,300,960,40);
+ c.strokeStyle='rgba(160,130,84,.4)';c.lineWidth=1;
+ var wi;for(wi=0;wi<960;wi+=80){c.beginPath();c.moveTo(wi,300);c.lineTo(wi,340);c.stroke()}
+ // 地板
+ var fg=c.createLinearGradient(0,340,0,540);fg.addColorStop(0,'#cfa76e');fg.addColorStop(1,'#b98f58');
+ c.fillStyle=fg;c.fillRect(0,340,960,200);
+ c.strokeStyle='rgba(120,86,48,.35)';
+ for(wi=0;wi<12;wi++){c.beginPath();c.moveTo(0,348+wi*17);c.lineTo(960,348+wi*17);c.stroke()}
+ for(wi=0;wi<10;wi++){var vx=wi*106+((wi%2)?50:0);c.beginPath();c.moveTo(vx,348);c.lineTo(vx+(vx<480?-14:14),540);c.stroke()}
+ // 地毯
+ c.fillStyle='rgba(194,91,61,.30)';c.beginPath();c.ellipse(480,452,150,46,0,0,6.29);c.fill();
+ c.strokeStyle='rgba(194,91,61,.45)';c.lineWidth=3;c.beginPath();c.ellipse(480,452,122,36,0,0,6.29);c.stroke();
+ // 大窗(左上)
+ c.fillStyle='#8a6a44';wRoundRect(c,52,52,206,196,14);c.fill();
+ var wg=c.createLinearGradient(0,60,0,240);wg.addColorStop(0,sky.a);wg.addColorStop(1,sky.b);
+ c.fillStyle=wg;wRoundRect(c,62,62,186,176,10);c.fill();
+ var ci;for(ci=0;ci<WORLD.clouds.length;ci++){var cl=WORLD.clouds[ci];wCloud(c,80+cl.x*230,110+cl.y*80,0.5+cl.s*0.4)}
+ if(S&&S.weather==='rain'){c.strokeStyle='rgba(255,255,255,.55)';c.lineWidth=1.2;
+  for(ci=0;ci<12;ci++){var rx=66+((ci*37+WORLD.t*260)%182),ry=64+((ci*53+WORLD.t*430)%172);
+   c.beginPath();c.moveTo(rx,ry);c.lineTo(rx-3,ry+9);c.stroke()}}
+ // 窗外灌木花墙+蝴蝶
+ wBush(c,110,212,54,32,1);wBush(c,198,216,56,30,4);
+ wScatter(c,155,194,180,26,'#b5d478',12,3.4,0.6);
+ wFlowerCluster(c,118,194,'#f0b8cc',3);wFlowerCluster(c,192,196,'#e8875a',2);
+ c.fillStyle='#8fc178';c.fillRect(62,232,186,6);
+ wButterfly(c,148+Math.sin(WORLD.t*0.7)*28,172+Math.cos(WORLD.t*0.9)*7,'#f2d15c',1.5);
+ wButterfly(c,206+Math.sin(WORLD.t*0.5+2)*20,184+Math.cos(WORLD.t*0.8+1)*6,'#f2d15c',1.1);
+ // 窗棂
+ c.strokeStyle='#8a6a44';c.lineWidth=5;c.beginPath();c.moveTo(155,62);c.lineTo(155,238);c.stroke();c.beginPath();c.moveTo(62,150);c.lineTo(248,150);c.stroke();
+ wRoundRect(c,52,52,206,196,14);c.strokeStyle='#7a5a38';c.lineWidth=3;c.stroke();
+ // 光柱
+ c.fillStyle='rgba(255,246,210,.16)';
+ c.beginPath();c.moveTo(80,90);c.lineTo(230,90);c.lineTo(400,340);c.lineTo(210,340);c.closePath();c.fill();
+ c.beginPath();c.moveTo(110,150);c.lineTo(230,150);c.lineTo(470,540);c.lineTo(300,540);c.closePath();c.fill();
+ // 尘埃
+ for(ci=0;ci<WORLD.motes.length;ci++){var mo=WORLD.motes[ci];
+  var mx=mo.x+Math.sin(WORLD.t*0.4+mo.ph)*14,my=mo.y+Math.cos(WORLD.t*0.3+mo.ph)*9;
+  c.fillStyle='rgba(255,250,220,'+(0.25+0.2*Math.sin(WORLD.t+mo.ph))+')';c.beginPath();c.arc(mx,my,1.6,0,6.29);c.fill()}
+ // 木床(左)
+ c.fillStyle='#9a7a54';wRoundRect(c,22,236,116,86,8);c.fill();
+ c.strokeStyle='#5a4638';c.lineWidth=1.6;wRoundRect(c,22,236,116,86,8);c.stroke();
+ c.fillStyle='#f4ead2';wRoundRect(c,30,244,100,26,6);c.fill();
+ c.fillStyle='#c2d8b0';wRoundRect(c,30,272,100,44,6);c.fill();
+ c.fillStyle='#e8d0a0';c.beginPath();c.ellipse(56,250,18,10,0,0,6.29);c.fill();
+ // 柜台(左中)
+ c.fillStyle='#a87a4e';wRoundRect(c,210,356,170,64,8);c.fill();
+ c.strokeStyle='#5a4638';c.lineWidth=1.6;wRoundRect(c,210,356,170,64,8);c.stroke();
+ c.fillStyle='#c99a68';wRoundRect(c,202,348,186,16,6);c.fill();
+ c.fillStyle='rgba(250,246,232,.9)';wRoundRect(c,224,318,42,32,4);c.fill(); // 账本
+ c.strokeStyle='#bd9245';c.lineWidth=1;c.beginPath();c.moveTo(245,318);c.lineTo(245,350);c.stroke();
+ c.fillStyle='#d8b06a';c.beginPath();c.arc(300,330,10,0,6.29);c.fill();c.fillStyle='#a8c4dd';c.beginPath();c.arc(324,332,8,0,6.29);c.fill();c.fillStyle='#c2a06a';c.beginPath();c.arc(344,334,7,0,6.29);c.fill(); // 罐子
+ if(S&&has(S.unlocked,'stove')){ // 暖炉
+  c.fillStyle='#7a6a5a';wRoundRect(c,402,368,52,52,6);c.fill();
+  c.fillStyle='rgba(255,160,80,.85)';wRoundRect(c,412,384,32,22,4);c.fill();
+  c.fillStyle='rgba(255,220,140,.5)';c.beginPath();c.arc(428,395,14+Math.sin(WORLD.t*4)*2,0,6.29);c.fill();
+ }
+ // 工作台(右上)
+ c.fillStyle='#8a6a48';wRoundRect(c,770,96,164,72,8);c.fill();
+ c.fillStyle='#a8846a';wRoundRect(c,778,104,148,18,4);c.fill();
+ c.fillStyle='#9aa0a8';wRoundRect(c,792,78,34,20,3);c.fill();
+ c.fillStyle='#c9a86a';c.beginPath();c.arc(852,84,8,0,6.29);c.fill();
+ c.strokeStyle='#5a6b7a';c.lineWidth=2;c.beginPath();c.moveTo(886,86);c.lineTo(906,96);c.stroke();
+ // 旧物箱(右下)
+ c.fillStyle='#9a7a54';wRoundRect(c,586,436,62,44,6);c.fill();
+ c.fillStyle='#7d9b72';wRoundRect(c,596,428,42,14,4);c.fill();
+ // 猫窝/猫
+ if(S&&S.cat){
+  c.fillStyle='#d8c9a6';c.beginPath();c.ellipse(726,338,30,13,0,0,6.29);c.fill();
+  c.fillStyle='#8a8a8a';c.beginPath();c.arc(718,330,9,0,6.29);c.fill();
+  c.beginPath();c.moveTo(711,324);c.lineTo(713,316);c.lineTo(718,322);c.closePath();c.fill();
+  c.beginPath();c.moveTo(725,324);c.lineTo(727,316);c.lineTo(732,322);c.closePath();c.fill();
+  c.strokeStyle='#8a8a8a';c.lineWidth=3;c.beginPath();c.moveTo(727,332);c.quadraticCurveTo(744,330,742,318);c.stroke();
+ }
+ if(S&&S.dog){
+  c.fillStyle='#c2a06a';c.beginPath();c.arc(866,462,10,0,6.29);c.fill();
+  c.fillStyle='#a8845a';c.beginPath();c.ellipse(866,474,13,8,0,0,6.29);c.fill();
+  c.strokeStyle='#a8845a';c.lineWidth=3;c.beginPath();c.moveTo(858,474);c.lineTo(852,480);c.stroke();c.beginPath();c.moveTo(874,474);c.lineTo(880,480);c.stroke();
+  c.beginPath();c.moveTo(866,466);c.lineTo(866,458);c.stroke();
+ }
+ // 花架(右墙)
+ var rows=S?(S.potCap>12?3:(S.potCap>6?2:1)):1;
+ c.fillStyle='#8a6a48';
+ var ri2;
+ for(ri2=0;ri2<rows;ri2++){
+  var sy=worldPotPos(ri2*6).y+20;
+  c.fillRect(628,sy,326,10);
+  c.fillStyle='rgba(60,50,30,.15)';c.fillRect(628,sy+10,326,4);c.fillStyle='#8a6a48';
+ }
+ c.strokeStyle='#7a5a38';c.lineWidth=4;
+ if(rows>0){c.beginPath();c.moveTo(634,worldPotPos(0).y+20);c.lineTo(634,worldPotPos((rows-1)*6).y+30);c.stroke();
+ c.beginPath();c.moveTo(948,worldPotPos(0).y+20);c.lineTo(948,worldPotPos((rows-1)*6).y+30);c.stroke()}
+ var i2;
+ for(i2=0;i2<(S?S.potCap:6);i2++){var pp=worldPotPos(i2);wDrawPot(c,pp.x,pp.y,S.pots[i2])}
+ // 门(下中)
+ c.fillStyle='#7a5a38';wRoundRect(c,436,436,90,100,8);c.fill();
+ c.fillStyle='#9a7a54';wRoundRect(c,442,442,78,94,6);c.fill();
+ c.strokeStyle='#5a4638';c.lineWidth=1.6;wRoundRect(c,442,442,78,94,6);c.stroke();
+ c.fillStyle='rgba(250,246,232,.25)';c.beginPath();c.arc(458,496,5,0,6.29);c.fill();
+ // 挂植物(蓬松)
+ wScatter(c,360,72,42,18,'#7fae52',11,4.4,0.85);
+ c.strokeStyle='#8a6a44';c.lineWidth=2;c.beginPath();c.moveTo(360,40);c.lineTo(360,58);c.stroke();
+ wFlowerCluster(c,354,64,'#e8875a',2);wFlowerCluster(c,368,66,'#f0b8cc',2);
+ // 招牌
+ c.fillStyle='#f4ead2';wRoundRect(c,640,40,180,44,8);c.fill();
+ c.strokeStyle='#bd9245';c.lineWidth=2;wRoundRect(c,640,40,180,44,8);c.stroke();
+ c.fillStyle='#a34a30';c.font='bold 20px KaiTi, STKaiti, serif';c.textAlign='center';
+ c.fillText(S&&S.shopName?'「'+S.shopName+'」':'花 · 水 · 一点时间',730,70);
+}
+function wDrawStreet(c){
+ var sky=wSkyColor();
+ var g=c.createLinearGradient(0,0,0,320);g.addColorStop(0,sky.a);g.addColorStop(0.75,sky.b);g.addColorStop(1,'#e9eed6');
+ c.fillStyle=g;c.fillRect(0,0,960,330);
+ var ci;
+ // 大朵蓬松云
+ for(ci=0;ci<WORLD.clouds.length;ci++){var cl=WORLD.clouds[ci];wCloud(c,40+cl.x*900,54+cl.y*100,1.1+cl.s*0.7)}
+ if(S&&S.phase===2){c.fillStyle='rgba(255,200,120,.4)';c.beginPath();c.arc(790,90,36,0,6.29);c.fill()}
+ // 远处废墟(空气透视:淡而灰蓝)
+ c.fillStyle='rgba(172,182,186,.42)';
+ c.fillRect(120,190,46,60);wRoundRect(c,180,206,30,44,4);c.fill();c.fillRect(690,184,52,66);
+ c.beginPath();c.moveTo(690,184);c.lineTo(716,164);c.lineTo(742,184);c.closePath();c.fill();
+ c.fillStyle='rgba(150,160,164,.3)';c.fillRect(250,208,80,42);c.fillRect(560,214,66,36);
+ // 灌木花墙(中景,亮黄绿大团+碎叶+粉花簇)
+ var hb;
+ for(ci=0;ci<7;ci++){var bx=70+ci*138,by=262+(wH(ci*9.1)-0.5)*26;wBush(c,bx,by,74,50,ci)}
+ wScatter(c,480,232,930,44,'#b5d478',26,5,0.5);
+ // 高秆植物(左簇右簇)
+ for(ci=0;ci<4;ci++){wTallPlant(c,18+ci*13,330,86+ci*9,ci)}
+ for(ci=0;ci<4;ci++){wTallPlant(c,900+ci*13,332,80+ci*11,ci+7)}
+ // 远草带
+ c.fillStyle='#9ccf6e';c.beginPath();c.moveTo(0,314);c.quadraticCurveTo(480,294,960,316);c.lineTo(960,360);c.lineTo(0,360);c.closePath();c.fill();
+ c.fillStyle='#8fc178';c.beginPath();c.moveTo(0,330);c.quadraticCurveTo(480,306,960,330);c.lineTo(960,392);c.lineTo(0,392);c.closePath();c.fill();
+ wScatter(c,480,336,930,42,'#7db563',22,4,0.6);
+ // 泥土小径(横贯,暖褐横带+小石点)
+ c.fillStyle='#d4b98c';c.beginPath();c.moveTo(0,404);c.quadraticCurveTo(240,390,480,404);c.quadraticCurveTo(720,418,960,402);c.lineTo(960,462);c.quadraticCurveTo(700,478,470,462);c.quadraticCurveTo(230,448,0,466);c.closePath();c.fill();
+ c.fillStyle='#c3a678';c.beginPath();c.moveTo(0,436);c.quadraticCurveTo(260,424,520,438);c.quadraticCurveTo(760,450,960,436);c.lineTo(960,452);c.quadraticCurveTo(700,466,460,452);c.quadraticCurveTo(220,438,0,452);c.closePath();c.fill();
+ wScatter(c,480,432,930,40,'#a89878',30,2.6,0.55);
+ wScatter(c,300,448,500,26,'#e5d2a8',14,2.2,0.5);
+ // 店面(左,暖木+红瓦+花箱)
+ c.fillStyle='#e8dcc2';wRoundRect(c,30,296,190,140,8);c.fill();
+ c.strokeStyle='#5a4638';c.lineWidth=2;wRoundRect(c,30,296,190,140,8);c.stroke();
+ c.fillStyle='#c25b3d';c.beginPath();c.moveTo(20,300);c.lineTo(125,264);c.lineTo(230,300);c.closePath();c.fill();
+ c.strokeStyle='#8f3f28';c.lineWidth=1.6;c.beginPath();c.moveTo(20,300);c.lineTo(125,264);c.lineTo(230,300);c.stroke();
+ c.fillStyle='#9a7a54';wRoundRect(c,60,336,130,70,6);c.fill();
+ c.fillStyle='#fdf6e3';c.fillRect(74,346,44,50);c.fillRect(132,346,44,50);
+ c.strokeStyle='#5a4638';c.lineWidth=1.4;c.strokeRect(74,346,44,50);c.strokeRect(132,346,44,50);
+ // 绿藤爬墙+花箱
+ wScatter(c,52,340,30,60,'#7fae52',12,4.4,0.8);
+ wFlowerCluster(c,54,318,'#f0b8cc',4);
+ c.fillStyle='#8a6a44';wRoundRect(c,46,424,64,14,3);c.fill();
+ wScatter(c,78,424,58,10,'#6fa04a',9,4,0.85);
+ wFlowerCluster(c,64,416,'#e8875a',3);wFlowerCluster(c,96,414,'#9a7ab8',3);
+ c.fillStyle='#f4ead2';wRoundRect(c,52,278,146,20,5);c.fill();
+ c.strokeStyle='#a3814e';c.lineWidth=1.4;wRoundRect(c,52,278,146,20,5);c.stroke();
+ c.fillStyle='#a34a30';c.font='bold 13px KaiTi, serif';c.textAlign='center';c.fillText(S&&S.shopName?'「'+S.shopName+'」':'花 · 水 · 一点时间',125,292);
+ // 前景卷心菜田(近大远小,前排切出画面)
+ var cb;
+ for(cb=0;cb<8;cb++){wCabbage(c,36+cb*128+(cb%2)*30,478+((cb*37)%14),34+wH(cb*3.3)*9)}
+ for(cb=0;cb<7;cb++){wCabbage(c,10+cb*146+(cb%2)*36,538+((cb*53)%8),46+wH(cb*5.7)*12)}
+ // 蝴蝶
+ for(ci=0;ci<3;ci++){var bf=WORLD.butterflies[ci];
+  wButterfly(c,bf.x,bf.y,'#f2d15c',1.4)}
+ // 土路下延(去门口的连接)
+ c.fillStyle='#d4b98c';c.beginPath();c.moveTo(380,540);c.quadraticCurveTo(480,470,560,444);c.quadraticCurveTo(700,412,960,428);c.lineTo(960,540);c.closePath();c.fill();
+ if(S&&S.weather==='rain'){
+  c.strokeStyle='rgba(220,235,240,.5)';c.lineWidth=1.4;
+  for(ci=0;ci<40;ci++){var rx2=(ci*89+WORLD.t*300)%960,ry2=(ci*127+WORLD.t*560)%540;
+   c.beginPath();c.moveTo(rx2,ry2);c.lineTo(rx2-4,ry2+13);c.stroke()}
+ }
+ if(S&&S.weather==='fog'){c.fillStyle='rgba(238,242,236,.4)';c.fillRect(0,0,960,540)}
+}
+function wDrawPrompt(c,x,y,text){
+ c.font='bold 13px "Microsoft YaHei"';
+ var w=c.measureText(text).width+22;
+ var yy=y-Math.sin(WORLD.t*4)*2;
+ c.fillStyle='rgba(255,252,240,.95)';wRoundRect(c,x-w/2,yy-30,w,24,12);c.fill();
+ c.strokeStyle='#bd9245';c.lineWidth=1.4;wRoundRect(c,x-w/2,yy-30,w,24,12);c.stroke();
+ c.fillStyle='#6f5a30';c.textAlign='center';c.fillText(text,x,yy-13);
+}
+function worldLoop(ts){
+ WORLD.lastFrame=Date.now();
+ if(WORLD.on)worldTick();
+ requestAnimationFrame(worldLoop);
+}
+function worldTick(){
+ if(!WORLD.on)return;
+ WORLD.t+=0.016;
+ var bi2;for(bi2=0;bi2<WORLD.butterflies.length;bi2++){var bf=WORLD.butterflies[bi2];
+  bf.x=480+Math.sin(WORLD.t*bf.s1+bi2*2.1)*380;
+  bf.y=436+Math.cos(WORLD.t*bf.s2+bi2*1.3)*24+Math.sin(WORLD.t*3.1+bi2)*9;}
+ var cv=$('world');
+ if(!cv||!cv.width)return;
+ var c=cv.getContext('2d');
+ var sc=cv.width/WORLD.W;
+ c.setTransform(sc,0,0,sc,0,0);
+ // 移动
+ var frozen=WORLD.frozen||($('modal').style.display!=='none');
+ var dx=0,dy=0;
+ if(!frozen){
+  if(WORLD.keys.left)dx-=1;if(WORLD.keys.right)dx+=1;
+  if(WORLD.keys.up)dy-=1;if(WORLD.keys.down)dy+=1;
+  dx+=WORLD.jx;dy+=WORLD.jy;
+  if(WORLD.tx!==null){
+   var ddx=WORLD.tx-WORLD.px,ddy=WORLD.ty-WORLD.py,dd=Math.sqrt(ddx*ddx+ddy*ddy);
+   if(dd<5){WORLD.tx=null;WORLD.ty=null}
+   else{dx=ddx/dd;dy=ddy/dd}
+  }
+ }
+ var ml=Math.sqrt(dx*dx+dy*dy);
+ if(ml>0.05){
+  dx/=Math.max(1,ml);dy/=Math.max(1,ml);
+  var sp=3.1;
+  var nx=WORLD.px+dx*sp,ny=WORLD.py+dy*sp;
+  var band=WORLD.scene==='shop'?{x0:60,x1:900,y0:352,y1:502}:{x0:40,x1:920,y0:352,y1:512};
+  if(nx>band.x0&&nx<band.x1)WORLD.px=nx;
+  if(ny>band.y0&&ny<band.y1)WORLD.py=ny;
+  if(Math.abs(dx)>Math.abs(dy))WORLD.dir=dx>0?'right':'left';
+  else if(dy!==0)WORLD.dir=dy>0?'down':'up';
+  WORLD.moving=true;
+ }else{WORLD.moving=false}
+ // NPC 入场
+ var i;
+ for(i=0;i<WORLD.npcs.length;i++){var n=WORLD.npcs[i];
+  if(!n.arrived){
+   var adx=n.tx-n.x,ady=n.ty-n.y,ad=Math.sqrt(adx*adx+ady*ady);
+   if(ad<3)n.arrived=true;else{n.x+=adx/ad*2.2;n.y+=ady/ad*2.2}
+  }
+ }
+ // 场景
+ if(WORLD.scene==='shop')wDrawShop(c);else wDrawStreet(c);
+ // 精灵(y排序)
+ var sprites=[];
+ for(i=0;i<WORLD.npcs.length;i++)(function(np){
+  sprites.push({y:np.y,draw:function(){
+   var look=NPC_LOOK[np.cid]||{};
+   look.dir='down';look.step=false;look.bob=true;look.ph=np.ph;
+   wDrawPerson(c,np.x,np.y,look);
+   c.fillStyle='rgba(90,70,40,.7)';c.font='bold 12px Microsoft YaHei';c.textAlign='center';
+   c.fillText(CUST[np.cid].n,np.x,np.y-58);
+  }});
+ })(WORLD.npcs[i]);
+ sprites.push({y:WORLD.py,draw:function(){
+  wDrawPerson(c,WORLD.px,WORLD.py,{dir:WORLD.dir,step:WORLD.moving,col:'#7d9b72',hair:'#4a3a2e',hat:true,apron:true});
+ }});
+ sprites.sort(function(a,b){return a.y-b.y});
+ for(i=0;i<sprites.length;i++)sprites[i].draw();
+ // 傍晚暖色
+ if(S&&S.phase===2){c.fillStyle='rgba(255,170,90,.16)';c.fillRect(0,0,960,540)}
+ if(S&&S.weather==='rain'&&WORLD.scene==='shop'){c.fillStyle='rgba(120,150,170,.10)';c.fillRect(0,0,960,540)}
+ if(S&&S.weather==='fog'&&WORLD.scene==='shop'){c.fillStyle='rgba(238,242,236,.22)';c.fillRect(0,0,960,540)}
+ // 水彩纸纹理
+ if(WORLD.grain){
+  if(!WORLD._pat)WORLD._pat=c.createPattern(WORLD.grain,'repeat');
+  c.globalAlpha=.8;c.fillStyle=WORLD._pat;c.fillRect(0,0,960,540);c.globalAlpha=1;
+ }
+ // 柔和暗角
+ var vg=c.createRadialGradient(480,275,190,480,285,560);
+ vg.addColorStop(0,'rgba(56,40,20,0)');vg.addColorStop(0.72,'rgba(56,40,20,.05)');vg.addColorStop(1,'rgba(56,40,20,.24)');
+ c.fillStyle=vg;c.fillRect(0,0,960,540);
+ // 互动提示(最近)
+ if(!frozen||WORLD.npcs.length){
+  var best=null,bd=1e9;
+  var acts=worldInteractables();
+  for(i=0;i<acts.length;i++){var a=acts[i];
+   var d2=(a.x-WORLD.px)*(a.x-WORLD.px)+(a.y-WORLD.py)*(a.y-WORLD.py);
+   if(d2<a.r*a.r&&d2<bd){bd=d2;best=a}}
+  for(i=0;i<WORLD.npcs.length;i++){var np2=WORLD.npcs[i];
+   if(np2.arrived&&!np2.talking){
+    var d3=(np2.x-WORLD.px)*(np2.x-WORLD.px)+(np2.y-WORLD.py)*(np2.y-WORLD.py);
+    if(d3<52*52&&d3<bd){bd=d3;best={x:np2.x,y:np2.y,label:'💬 和'+CUST[np2.cid].n+'聊聊',act:(function(nn){return function(){worldTalk(nn.cid,nn)}})(np2)}}
+   }}
+  if(best){WORLD.prompt=best;wDrawPrompt(c,best.x,best.y,best.label)}
+  else WORLD.prompt=null;
+ }
+}
+function worldInteractNow(){
+ if(WORLD.prompt&&WORLD.prompt.act){AU.click();WORLD.prompt.act();WORLD.tx=null;WORLD.ty=null}
+}
+function worldBoot(){
+ if(WORLD.booted)return;WORLD.booted=true;
+ var i;
+ for(i=0;i<4;i++)WORLD.clouds.push({x:rnd(),y:rnd(),s:rnd()});
+ for(i=0;i<16;i++)WORLD.motes.push({x:280+rnd()*180,y:150+rnd()*260,ph:rnd()*6});
+ for(i=0;i<3;i++)WORLD.butterflies.push({x:480,y:430,s1:0.35+rnd()*0.3,s2:0.5+rnd()*0.4});
+ // 水彩纸纹理瓦片(一次生成)
+ var gr=document.createElement('canvas');gr.width=140;gr.height=140;
+ var gc=gr.getContext('2d'),gi2;
+ for(gi2=0;gi2<340;gi2++){
+  var gxx=wH(gi2*3.1)*140,gyy=wH(gi2*5.3)*140,ga=0.05+wH(gi2*7.7)*0.07;
+  gc.fillStyle=gi2%4?'rgba(120,96,60,'+ga.toFixed(3)+')':'rgba(255,250,235,'+(ga+0.03).toFixed(3)+')';
+  gc.beginPath();gc.arc(gxx,gyy,1.1+wH(gi2*9.1)*1.8,0,6.29);gc.fill();
+ }
+ for(gi2=0;gi2<70;gi2++){ // 浅色区大斑(水彩沉积感)
+  var gxx2=wH(gi2*4.3)*140,gyy2=wH(gi2*6.1)*140;
+  gc.fillStyle='rgba(150,128,92,'+(0.04+wH(gi2*8.9)*0.05).toFixed(3)+')';
+  gc.beginPath();gc.arc(gxx2,gyy2,2.2+wH(gi2*3.7)*1.6,0,6.29);gc.fill();
+ }
+ WORLD.grain=gr;
+ window.addEventListener('resize',worldResize);
+ document.addEventListener('keydown',function(e){
+  if(!WORLD.on)return;
+  var tag=(e.target&&e.target.tagName)||'';
+  if(tag==='INPUT'||tag==='TEXTAREA')return;
+  var k=e.key;
+  if(k==='ArrowLeft'||k==='a'||k==='A')WORLD.keys.left=1;
+  else if(k==='ArrowRight'||k==='d'||k==='D')WORLD.keys.right=1;
+  else if(k==='ArrowUp'||k==='w'||k==='W')WORLD.keys.up=1;
+  else if(k==='ArrowDown'||k==='s'||k==='S')WORLD.keys.down=1;
+  else if(k==='e'||k==='E'||k==='Enter'||k===' '){worldInteractNow()}
+  else return;
+  if(k.indexOf('Arrow')===0||k===' ')e.preventDefault();
+ });
+ document.addEventListener('keyup',function(e){
+  var k=e.key;
+  if(k==='ArrowLeft'||k==='a'||k==='A')WORLD.keys.left=0;
+  else if(k==='ArrowRight'||k==='d'||k==='D')WORLD.keys.right=0;
+  else if(k==='ArrowUp'||k==='w'||k==='W')WORLD.keys.up=0;
+  else if(k==='ArrowDown'||k==='s'||k==='S')WORLD.keys.down=0;
+ });
+ // 点击/触摸
+ var cv=$('world');
+ cv.addEventListener('pointerdown',function(e){
+  if(!WORLD.on)return;
+  var p=wXY(e);
+  var i,acts=worldInteractables();
+  for(i=0;i<acts.length;i++){var a=acts[i];
+   var d=(a.x-p.x)*(a.x-p.x)+(a.y-p.y)*(a.y-p.y);
+   if(d<a.r*a.r){AU.click();a.act();return}}
+  for(i=0;i<WORLD.npcs.length;i++){var n=WORLD.npcs[i];
+   if(n.arrived&&!n.talking){
+    var d2=(n.x-p.x)*(n.x-p.x)+(n.y-p.y)*(n.y-p.y);
+    if(d2<48*48){worldTalk(n.cid,n);return}}}
+  WORLD.tx=p.x;WORLD.ty=Math.max(352,Math.min(502,p.y));
+ });
+ // 虚拟摇杆
+ var joy=$('joy'),knob=$('joyKnob'),jid=null;
+ function jset(e){
+  var r=joy.getBoundingClientRect();
+  var jx=(e.clientX-r.left-55)/42,jy=(e.clientY-r.top-55)/42;
+  var m=Math.sqrt(jx*jx+jy*jy);if(m>1){jx/=m;jy/=m}
+  WORLD.jx=jx;WORLD.jy=jy;
+  knob.style.left=(35+jx*32)+'px';knob.style.top=(35+jy*32)+'px';
+ }
+ joy.addEventListener('pointerdown',function(e){jid=e.pointerId;joy.setPointerCapture(jid);jset(e);e.preventDefault()});
+ joy.addEventListener('pointermove',function(e){if(e.pointerId===jid)jset(e)});
+ function jend(e){if(e.pointerId!==jid)return;jid=null;WORLD.jx=0;WORLD.jy=0;knob.style.left='35px';knob.style.top='35px'}
+ joy.addEventListener('pointerup',jend);joy.addEventListener('pointercancel',jend);
+ $('btnAct2').onclick=function(){worldInteractNow()};
+ // 按钮组
+ $('btnActs').onclick=function(){
+  if(!S)return;
+  if(WORLD.on&&S.phase===1&&WORLD.remain.length){
+   modal('<h2>暂时打烊?</h2><p>店里的客人会先回去,今天不再接待。</p>',[
+    {h:'再等等,我招待完',f:function(){closeModal()}},
+    {h:'打烊(进入傍晚)',cls:'dark',f:function(){closeModal();worldNpcLeave();WORLD.remain=[];evening()}}]);
+   return;
+  }
+  if(S.phase===0)morningActionsMenu();
+  else if(S.phase===2)eveningActionsMenu();
+ };
+ $('btnLog').onclick=function(){
+  var d=$('logDrawer');d.style.display='block';
+  setTimeout(function(){document.body.classList.toggle('log-open')},10);
+ };
+ $('btnLogClose').onclick=function(){document.body.classList.remove('log-open')};
+ worldResize();
+ WORLD.lastFrame=0;
+ setInterval(function(){if(WORLD.on&&Date.now()-(WORLD.lastFrame||0)>120)worldTick()},90);
+ requestAnimationFrame(worldLoop);
+}
+
 var TEST=false,TT={n:0},REPORT={errors:[],runs:[]};
 function selfTest(){
  TEST=true;AU.mute=true;
@@ -2597,7 +3316,9 @@ function unitTests(){
  T('hybrid-reveal',function(){S=newState();S.testMode=true;
   S.pots[0]={pl:'moss',st:2,w:1,cd:0};S.pots[1]={pl:'fern',st:2,w:1,cd:0};
   doHybrid(0,{h:HYBRIDS[0],nb:1});
-  A('hybrid-reveal',S.knowHyb.lant===1)});
+  A('hybrid-reveal',S.knowHyb.lant===1);
+  A('hybrid-clears-pots',S.pots[0]===null&&S.pots[1]===null);
+  A('hybrid-gives-seed',S.seedBag.lant===1)});
  T('tutorial',function(){var okT=true,d;for(d=1;d<=6;d++){if(!tutorialHint(d))okT=false}A('tutorial',okT&&tutorialHint(7)==='')});
  T('shop-level',function(){S=newState();S.testMode=true;S.atmo=60;A('shop-lv2',shopLevel()===2);S.atmo=450;A('shop-lv4',shopLevel()===4);S.atmo=0;A('shop-lv1',shopLevel()===1)});
  T('rain-chance',function(){A('rain-chance',getRainChance(10)>=0.25&&getRainChance(3)>getRainChance(10))});
@@ -2736,6 +3457,7 @@ function newGame(silent){
  $('title').style.display='none';$('app').style.display='flex';
  $('log').innerHTML='';
  applyShopTier();
+ worldOn();
  refreshPanel();updHud();
  if(!TEST)AU.warm();
  startDay();
@@ -2748,7 +3470,7 @@ function contGame(){
  fixPotLen();
  $('title').style.display='none';$('app').style.display='flex';
  $('log').innerHTML='';
- refreshPanel();updHud();applyShopTier();
+ refreshPanel();updHud();applyShopTier();worldOn();
  sys('(读取了第 '+S.day+' 天的存档,从这天早晨继续。)');
  startDay();
 }
@@ -2760,6 +3482,7 @@ function demoSetup(){
  S.pots=[{pl:'moss',st:2,w:1},{pl:'fern',st:2,w:1},{pl:'viol',st:2,w:1,tag:'纽拉'},{pl:'lant',st:2,w:1},{pl:'horn',st:1,w:1},{pl:'cact',st:2,w:0,miss:1}];
  S.seedBag={vine:1};S.seeds=2;S.myst=1;S.water=6;S.inv=[{id:'purple',q:1},{id:'pencil',q:2},{id:'petals',q:1}];
  $('title').style.display='none';$('app').style.display='flex';
+ worldOn();
  refreshPanel();updHud();daymark('第 8 天 · 晴');visitScene('baba',function(){});
 }
 function knownHybCount(){var n=0,k;for(k=0;k<HYBRIDS.length;k++){if(HYBRIDS[k].c!=='MUT'&&S&&S.knowHyb&&S.knowHyb[HYBRIDS[k].c])n++}return n}
@@ -2782,7 +3505,7 @@ function hybridCodexHtml(){
   }
  }
  rows+='<div style="padding:9px 0 2px;color:#3f4d59;line-height:1.7"><b>神秘种子</b>不需要邻居——单独种下,成熟时随机突变(7种):会说话的番茄 / 灯泡藤蔓 / 巧克力土 / 指针花 / 铅笔树 / 静默草 / 悲伤藤。</div>';
- return '<h2>📚 杂交图鉴 · 已发现 '+known+'/'+cnt+' 种</h2><p class="dim" style="font-size:13px">在花架面板点击成熟的亲本花,选「授粉」。亲本只休整3天,不受损。相邻才算邻居。图鉴只记录你亲手发现(或打听来)的配方。</p>'+rows;
+ return '<h2>📚 杂交图鉴 · 已发现 '+known+'/'+cnt+' 种</h2><p class="dim" style="font-size:13px">在花架面板点击成熟的亲本花,选「授粉」。授粉后两位亲本完成使命,花盆腾空(各五成概率留种)。相邻才算邻居。图鉴只记录你亲手发现(或打听来)的配方。</p>'+rows;
 }
 function showHybridCodex(){
  modal(hybridCodexHtml(),
@@ -2847,6 +3570,7 @@ function quitGame(){
  };
  setTab('pots');
  fxLoop();
+ worldBoot();
  var pt=document.createElement('button');pt.id='panelToggle';pt.innerHTML='🧺';pt.title='打开花架/背包面板';
  pt.onclick=function(){document.body.classList.toggle('sheet-open');AU.click()};
  document.body.appendChild(pt);
