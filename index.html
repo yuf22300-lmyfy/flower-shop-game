@@ -4911,11 +4911,11 @@ function worldUI(c){
   var wname=(S.weather==='rain'?'雨':(S.weather==='fog'?'雾':'晴'));
   c.fillText('第'+S.day+'天·'+(S.phase===0?'早晨':(S.phase===1?'正午':'傍晚'))+'·'+wname,10,21);
   c.textAlign='center';
-  c.fillText('💧'+S.water,292,21);c.fillText('🔧'+S.parts,344,21);c.fillText('🌰'+S.seeds,396,21);c.fillText('🪨'+(S.soil!=null?S.soil:3),452,21);
-  c.fillText('🎒'+invCount()+'/'+S.invCap,476,21);c.fillText('◈'+S.frags.length,536,21);
-  c.textAlign='right';c.fillText('✿ '+S.atmo,596,21);
-  c.fillStyle='rgba(64,54,42,.9)';c.fillRect(608,11,88,8);
-  c.fillStyle='#a8874a';c.fillRect(608,11,Math.min(88,Math.round(S.atmo/450*88)),8);
+  c.fillText('💧'+S.water,272,21);c.fillText('🔧'+S.parts,322,21);c.fillText('🌰'+S.seeds,372,21);c.fillText('🪨'+(S.soil!=null?S.soil:3),424,21);
+  c.fillText('🎒'+invCount()+'/'+S.invCap,492,21);c.fillText('◈'+S.frags.length,552,21);
+  c.textAlign='right';c.fillText('✿ '+S.atmo,604,21);
+  c.fillStyle='rgba(64,54,42,.9)';c.fillRect(616,11,88,8);
+  c.fillStyle='#a8874a';c.fillRect(616,11,Math.min(88,Math.round(S.atmo/450*88)),8);
  }
  // ===== 右上角按钮(带文字标签,加大) =====
  WORLD.btnRects=[];
