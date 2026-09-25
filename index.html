@@ -1205,7 +1205,7 @@ function newState(){
  water:8,parts:3,seeds:3,myst:1,soil:3,walkMap:{},nodeStock:{},seedBag:{},
  atmo:0,unlocked:{},shopName:'',named:false,shopLv:1,knowHyb:{},
  pots:[{pl:'moss',st:2,w:1},{pl:'fern',st:2,w:1},{pl:'viol',st:2,w:1},{pl:'horn',st:1,w:1},null,null],potCap:6,
- inv:[{id:'petals',q:1},{id:'food',q:1}],invCap:14,
+ inv:[{id:'petals',q:1},{id:'food',q:1},{id:'cloth',q:1}],invCap:14,
  relicsFound:[],relicOrder:[],relicFixed:[],relicFailed:[],excluded:{},
  tools:{},boxQ:[],boxRead:{},
  fav:f,clues:[],frags:[],flags:{},
@@ -3210,6 +3210,12 @@ function scriptHook(){
  if(S.day===4&&!S.flags.anc2){S.flags.anc2=1;sys('老太太离开时,替她提篮子的那个女人在屋檐下站了一会儿——就是提醒你浇水的那个。她没进来,只是朝店里望了一眼。')}
  if(S.day===5&&!S.flags.anc3){S.flags.anc3=1;sys('清晨,门口放着一小束紫罗兰,茎剪得整整齐齐。没有署名。你把它们插进了柜台上的水罐。');atmoGain(1)}
  if(S.day===3&&!S.cat){catArrival();return true}
+ // 第二天: 米沙顺口告诉你柔刺棉的配方(防辐射布的来路,前三天必得)
+ if(S.day>=2&&!S.flags.cottonHint&&!S.knowHyb.cotton){
+  S.flags.cottonHint=1;S.knowHyb.cotton=1;
+  sys('米沙背着琴路过窗口,弹了两个音:「老伙计以前念叨过——多刺仙人掌×铁线蕨,能结出柔刺棉。防辐射的布,就打它身上来。」');
+  gain('(杂交图鉴解锁:多刺仙人掌×铁线蕨 → 柔刺棉)');refreshPanel();save();
+ }
  // 矿工底座交付
  if(S.flags.rack2&&!S.flags.rack2Built&&S.potCap<18){
   S.flags.rack2Built=1;S.potCap=Math.min(18,S.potCap+3);fixPotLen();
@@ -6486,7 +6492,7 @@ function contGame(){
  if(t.ver===2){t.ver=3;t.shopLv=1;t.knowHyb={};t.negoToday=0;t.negoBonus={};t.dayT={picks:0,trade:0}}
  var mig;for(mig=0;mig<(t.inv||[]).length;mig++)if(t.inv[mig].id==='news')t.inv[mig].id='clip';
  if(t.invCap<14)t.invCap=14;
- if(t.soil==null)t.soil=3;
+ if(t.soil==null)t.soil=3;if(!t.inv.some(function(x2){return x2.id==='cloth'})&&t.day<19){t.inv.push({id:'cloth',q:1});if(!t.clothDur)t.clothDur=3}/*cloth-mig-v124*/;
  if(!t.walkMap)t.walkMap={};
  S=t;
  var bk;for(bk in S.fav){if(!has(S.fav[bk],'met'))S.fav[bk].met=(S.fav[bk].seen>0?1:0)}
