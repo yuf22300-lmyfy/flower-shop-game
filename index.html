@@ -4911,8 +4911,15 @@ function worldUI(c){
   var wname=(S.weather==='rain'?'雨':(S.weather==='fog'?'雾':'晴'));
   c.fillText('第'+S.day+'天·'+(S.phase===0?'早晨':(S.phase===1?'正午':'傍晚'))+'·'+wname,10,21);
   c.textAlign='center';
-  c.fillText('💧'+S.water,272,21);c.fillText('🔧'+S.parts,322,21);c.fillText('🌰'+S.seeds,372,21);c.fillText('🪨'+(S.soil!=null?S.soil:3),424,21);
-  c.fillText('🎒'+invCount()+'/'+S.invCap,492,21);c.fillText('◈'+S.frags.length,552,21);
+  c.fillText('💧'+S.water,272,21);c.fillText('🔧'+S.parts,322,21);c.fillText('🌰'+S.seeds,372,21);
+  // 土壤:手绘土黄色小土堆(emoji岩石是灰的,不用)
+  var soilV=(S.soil!=null?S.soil:3);
+  c.fillStyle='#c9973f';c.beginPath();c.moveTo(406,23);c.lineTo(411,12);c.lineTo(416,17);c.lineTo(420,10);c.lineTo(426,23);c.closePath();c.fill();
+  c.fillStyle='#a87a2e';c.fillRect(406,23,20,2);
+  c.fillStyle='#e0b45c';c.fillRect(419,11,2,2);c.fillRect(412,14,2,2);
+  c.textAlign='left';c.font='bold 15px "Microsoft YaHei"';c.fillStyle='#f0ecf6';c.fillText(String(soilV),430,21);
+  c.textAlign='center';c.font='bold 15px "Microsoft YaHei"';
+  c.fillText('🎒'+invCount()+'/'+S.invCap,496,21);c.fillText('◈'+S.frags.length,552,21);
   c.textAlign='right';c.fillText('✿ '+S.atmo,604,21);
   c.fillStyle='rgba(64,54,42,.9)';c.fillRect(616,11,88,8);
   c.fillStyle='#a8874a';c.fillRect(616,11,Math.min(88,Math.round(S.atmo/450*88)),8);
