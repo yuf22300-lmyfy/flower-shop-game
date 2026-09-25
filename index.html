@@ -5070,17 +5070,21 @@ function worldUI(c){
   c.textAlign='left';
   var wname=(S.weather==='rain'?'雨':(S.weather==='fog'?'雾':'晴'));
   c.fillText('第'+S.day+'天·'+(S.phase===0?'早晨':(S.phase===1?'正午':'傍晚'))+'·'+wname,10,21);
-  c.textAlign='center';
-  c.fillText('水 '+S.water,268,21);c.fillText('零件 '+S.parts,318,21);c.fillText('种子 '+S.seeds,372,21);
-  // 土壤:手绘土黄色小土堆(emoji岩石是灰的,不用)
+  // v2.0 资源行: 逐段测量推进,绝不重叠;每种资源一色(标签彩色+数值白)
   var soilV=(S.soil!=null?S.soil:3);
+  c.textAlign='left';
+  var hseg=function(lb,vl,col){c.fillStyle=col;c.fillText(lb,hx0,21);hx0+=c.measureText(lb).width+3;c.fillStyle='#ffffff';c.fillText(String(vl),hx0,21);hx0+=c.measureText(String(vl)).width+12;};
+  var hx0=246;
+  hseg('水',S.water,'#7ab8d8');
+  hseg('零件',S.parts,'#c9b06a');
+  hseg('种子',S.seeds,'#9fce7a');
+  hseg('土',soilV,'#e0a84c');
+  hseg('背包',invCount()+'/'+S.invCap,'#c8a0d8');
+  hseg('碎片',S.frags.length,'#8fd8c0');
+  hseg('氛围',S.atmo,'#f0a0b8');
 
-  c.textAlign='left';c.font='bold 15px "Microsoft YaHei"';c.fillStyle='#f0ecf6';c.fillText('土 '+String(soilV),422,21);
-  c.textAlign='center';c.font='bold 15px "Microsoft YaHei"';
-  c.fillText('背包 '+invCount()+'/'+S.invCap,478,21);c.fillText('碎片 '+S.frags.length,556,21);
-  c.textAlign='right';c.fillText('氛围 '+S.atmo,608,21);
-  c.fillStyle='rgba(64,54,42,.9)';c.fillRect(616,11,88,8);
-  c.fillStyle='#a8874a';c.fillRect(616,11,Math.min(88,Math.round(S.atmo/450*88)),8);
+  c.fillStyle='rgba(64,54,42,.9)';c.fillRect(644,11,76,8);
+  c.fillStyle='#a8874a';c.fillRect(644,11,Math.min(76,Math.round(S.atmo/450*76)),8);
  }
  // ===== 右上角按钮(带文字标签,加大) =====
  WORLD.btnRects=[];
