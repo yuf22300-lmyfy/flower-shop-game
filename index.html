@@ -3790,6 +3790,7 @@ function worldTalk(cid,npc){AU.murmur();
  }
  npc.talking=true;
  WORLD.frozen=true;
+ WORLD._visitChatLen=(WORLD.chatHist||[]).length; // 本次交谈条目起点(窗下大面板用)
  if(cid==='vera'&&hasPot('prism',2))sys('窗台上的彩光刺折出一道小彩虹——她果然来了。');
  var done=function(){
   npc.talking=false;WORLD.frozen=false;
@@ -4239,41 +4240,69 @@ function wDrawCustomer(c,np){ // 窗口顾客:有立绘用立绘(卡在窗台),�
    c.arc(hxx-4,topY-18,4.5,0,6.29);c.arc(hxx+4,topY-18,4.5,0,6.29);
    c.moveTo(hxx-8,topY-15);c.lineTo(hxx,topY-6);c.lineTo(hxx+8,topY-15);c.closePath();c.fill();
   }
-  // 对话显示在窗户照片正下方(场景内气泡=完整对话区):顾客台词+滚回历史都画在这里
+  // 对话面板(窗下,大):显示本次交谈的全部往来——顾客每句话+你的回应,最新行跟打字机
   if(WORLD.chat&&pP>=1){
    var hist2=WORLD.chatHist||[];
+   var vStart=Math.min(WORLD._visitChatLen||0,hist2.length); // 本次交谈从哪条起
    var sc2=Math.max(0,Math.min(WORLD.chatScroll||0,Math.max(0,hist2.length-1)));
-   var disp2=hist2.length?hist2[hist2.length-1-sc2]:{who:WORLD.chat.who,text:WORLD.chat.text};
-   var fullTxt2=String(disp2.text);
-   if(sc2===0&&WORLD.chat.shown!=null)fullTxt2=fullTxt2.slice(0,WORLD.chat.shown); // 打字机逐字
-   // 当前说话者是这位顾客→直接显示;滚回的更早条目也挂在这个盒里(带名字前缀);me/sys当前行走底栏兜底盒
-   var show2=(WORLD.chat.who===np.cid)||(sc2>0&&disp2.who!=='me'&&disp2.who!=='sys');
-   if(show2&&fullTxt2.length){
-    var pre2=(disp2.who!==np.cid)?((disp2.who==='me'?'你':(CUST[disp2.who]?CUST[disp2.who].n:disp2.who))+':'):'';
-    var btxt=pre2+fullTxt2;
-    // 自适应: 长台词绝不截断——先按22px/8行排, 超长再降19px(行高同步缩)
-    var bf2=22,blh2=25,bmax=8;
-    c.font=bf2+'px KaiTi, STKaiti, serif';
-    var bl2=pxWrapLines(c,btxt,430,bmax);
-    if(bl2[bl2.length-1].slice(-1)==='…'){bf2=19;blh2=22;c.font=bf2+'px KaiTi, STKaiti, serif';bl2=pxWrapLines(c,btxt,440,bmax)}
-    if(bl2[bl2.length-1].slice(-1)==='…'){bf2=16;blh2=19;c.font=bf2+'px KaiTi, STKaiti, serif';bl2=pxWrapLines(c,btxt,450,bmax)}
-    var bw4=0,bli2;
-    for(bli2=0;bli2<bl2.length;bli2++)bw4=Math.max(bw4,c.measureText(bl2[bli2]).width);
-    bw4=Math.min(bw4+36,440);
-    var bh4=bl2.length*blh2+14;
-    var bx4=Math.round(np.x-bw4/2),by4=318;
-    if(bh4>136)by4=318-(bh4-136); // 超高时向上顶,底边不超过 raw 454
-    if(by4<306-40)by4=306-40; // 不越过立绘底太多
-    if(bx4<298)bx4=298;if(bx4+bw4>640)bx4=640-bw4;
-    // 指向立绘的小三角(先画,压在气泡顶边下)
-    c.fillStyle='rgba(38,32,48,.94)';
-    c.beginPath();c.moveTo(np.x-9,by4+1);c.lineTo(np.x+9,by4+1);c.lineTo(np.x,by4-11);c.closePath();c.fill();
-    c.fillStyle='rgba(38,32,48,.94)';wRoundRect(c,bx4,by4,bw4,bh4,12);c.fill();
-    c.strokeStyle='rgba(146,122,92,.65)';c.lineWidth=1.5;wRoundRect(c,bx4,by4,bw4,bh4,12);c.stroke();
-    c.fillStyle='#f0e8f6';c.textAlign='center';
-    for(bli2=0;bli2<bl2.length;bli2++)c.fillText(bl2[bli2],Math.round(bx4+bw4/2),by4+blh2-4+bli2*blh2);
-    c.textAlign='left';
+   // 组装本次条目(带名字前缀)
+   var ents2=[],ei2;
+   for(ei2=vStart;ei2<hist2.length;ei2++){
+    var h2=hist2[ei2];
+    var nm2=h2.who==='me'?'你':(CUST[h2.who]?CUST[h2.who].n:h2.who);
+    var isCur=(ei2===hist2.length-1);
+    var tx2=String(h2.text);
+    if(isCur&&sc2===0&&WORLD.chat.shown!=null)tx2=tx2.slice(0,WORLD.chat.shown); // 打字机
+    ents2.push({nm:nm2,tx:tx2,cur:isCur&&sc2===0,me:h2.who==='me'});
    }
+   if(!ents2.length&&WORLD.chat){ents2.push({nm:WORLD.chat.who==='me'?'你':(CUST[WORLD.chat.who]?CUST[WORLD.chat.who].n:WORLD.chat.who),tx:String(WORLD.chat.text).slice(0,WORLD.chat.shown!=null?WORLD.chat.shown:9999),cur:true,me:WORLD.chat.who==='me'})}
+   // 视窗:sc2=0看最新;回看时整体后移
+   if(sc2>0){var back=Math.min(sc2,ents2.length-1);if(back>0)ents2=ents2.slice(0,ents2.length-back)}
+   // 面板几何:窗下整块(raw 296-652 × 306-545)
+   var px2=296,py2=306,pw2=356,ph2=239;
+   // 字号阶梯:先大后小,塞下全部;实在多→尾部截断标记
+   var ladder=[[23,27],[20,23],[17,20],[15,18]];
+   var chosen=null,li2;
+   for(li2=0;li2<ladder.length;li2++){
+    var f2=ladder[li2][0],lh2=ladder[li2][1];
+    c.font=f2+'px KaiTi, STKaiti, serif';
+    var maxLn=Math.floor((ph2-20)/lh2);
+    var lines2=[],ai2,more=false;
+    for(ai2=0;ai2<ents2.length;ai2++){
+     var wl2=pxWrapLines(c,ents2[ai2].nm+':'+ents2[ai2].tx,pw2-30,9);
+     if(lines2.length+wl2.length>maxLn){more=true;break}
+     var wj2;for(wj2=0;wj2<wl2.length;wj2++)lines2.push({t:wl2[wj2],ent:ents2[ai2]});
+    }
+    if(!more||li2===ladder.length-1){chosen={f:f2,lh:lh2,lines:lines2,more:more,maxLn:maxLn};break}
+   }
+   // 指向立绘的小三角
+   c.fillStyle='rgba(34,28,44,.95)';
+   c.beginPath();c.moveTo(np.x-11,py2+1);c.lineTo(np.x+11,py2+1);c.lineTo(np.x,py2-12);c.closePath();c.fill();
+   c.fillStyle='rgba(34,28,44,.95)';wRoundRect(c,px2,py2,pw2,ph2,14);c.fill();
+   c.strokeStyle='rgba(146,122,92,.7)';c.lineWidth=1.5;wRoundRect(c,px2,py2,pw2,ph2,14);c.stroke();
+   c.strokeStyle='rgba(146,122,92,.25)';c.lineWidth=1;wRoundRect(c,px2+5,py2+5,pw2-10,ph2-10,10);c.stroke();
+   // 渲染行:说话人名字段亮色,正文浅白;当前行稍亮
+   var ry2=py2+14,ri2;
+   c.font=chosen.f+'px KaiTi, STKaiti, serif';c.textAlign='left';
+   var prevEnt=null;
+   for(ri2=0;ri2<chosen.lines.length;ri2++){
+    var L2=chosen.lines[ri2];
+    if(L2.ent!==prevEnt){ // 每条消息的第一行:名字前缀染色
+     var colPre=L2.ent.me?'#9fd8b0':(L2.ent.cur?'#f2d9a0':'#b9a98f');
+     var pref=L2.ent.nm+':';
+     if(L2.t.indexOf(pref)===0){
+      c.fillStyle=colPre;c.fillText(pref,px2+16,ry2+chosen.lh-6);
+      c.fillStyle=L2.ent.cur?'#ffffff':(L2.ent.me?'#d9ecd9':'rgba(238,232,244,.92)');
+      c.fillText(L2.t.slice(pref.length),px2+16+c.measureText(pref).width,ry2+chosen.lh-6);
+     }else{c.fillStyle=L2.ent.cur?'#ffffff':'rgba(238,232,244,.92)';c.fillText(L2.t,px2+16,ry2+chosen.lh-6)}
+     prevEnt=L2.ent;
+    }else{
+     c.fillStyle=L2.ent.cur?'#ffffff':(L2.ent.me?'#d9ecd9':'rgba(238,232,244,.92)');
+     c.fillText(L2.t,px2+16,ry2+chosen.lh-6);
+    }
+    ry2+=chosen.lh;
+   }
+   if(chosen.more){c.fillStyle='rgba(180,168,146,.7)';c.font=(chosen.f-2)+'px "Microsoft YaHei"';c.fillText('…更早的已滚出 · 滚轮回看',px2+16,py2+ph2-8)}
   }
  }else wDrawBust(c,np);
 }
@@ -4991,7 +5020,7 @@ function worldUI(c){
  WORLD.chatRect=null;
  if(WORLD.chat){
   // 交互区指向场景窗下气泡(视口坐标: raw 298-640/307-454 → 0.61缩放)
-  WORLD.chatRect={x:300,y:230,w:380,h:130};
+  WORLD.chatRect={x:360,y:232,w:226,h:150}; // 场景窗下对话面板
   var hist=WORLD.chatHist||[],sc=Math.max(0,Math.min(WORLD.chatScroll||0,Math.max(0,hist.length-1)));
   WORLD.chatScroll=sc;
   var disp=hist.length?hist[hist.length-1-sc]:{who:WORLD.chat.who,text:WORLD.chat.text};
@@ -5000,7 +5029,7 @@ function worldUI(c){
   // 有立绘顾客在窗前时,台词由场景气泡负责;me/sys/无立绘→兜底盒画在场景同一位置
   var hasWinCid=false,ni3;
   for(ni3=0;ni3<(WORLD.npcs||[]).length;ni3++){var nw3=WORLD.npcs[ni3];
-   if(nw3.winMode&&window.CHAR_IMG&&CHAR_IMG[nw3.cid]&&CHAR_IMG[nw3.cid].ok&&WORLD.chat.who===nw3.cid){hasWinCid=true;break}}
+   if(nw3.winMode&&window.CHAR_IMG&&CHAR_IMG[nw3.cid]&&CHAR_IMG[nw3.cid].ok){hasWinCid=true;break}}
   if(!hasWinCid&&fullTxt.length){
    var fbx=310,fby=246,fbw=360;
    if(disp.who==='sys'){ // 系统/旁白: 居中灰胶囊
@@ -5023,14 +5052,14 @@ function worldUI(c){
   }
   // 小提示行(盒下方)
   c.fillStyle='rgba(160,140,90,.75)';c.font='11px "Microsoft YaHei"';c.textAlign='left';
-  c.fillText(sc>0?('↑ 已回看'+sc+'条 · 点击回最新'):'▾ 点击关闭 · 滚轮看更早',300,372);
+  c.fillText(sc>0?('↑ 已回看'+sc+'条 · 点击回最新'):'滚轮看更早 · 点面板关闭',356,386);
   if(WORLD.favNote&&WORLD.favNote.cid===WORLD.chat.who&&WORLD.chat.who!=='me'&&now-WORLD.favNote.at<9000&&sc===0){
    var fd=WORLD.favNote.d;
    var ftxt=(fd>0?'❤ 好感 +':'♡ 好感 ')+fd;
    if(WORLD.favNote.lvUp)ftxt+=' · 升级:'+favLabel(WORLD.favNote.lvUp);
    c.font='bold 12px "Microsoft YaHei"';c.textAlign='left';
    c.fillStyle=fd>0?'#e890a4':'#a3927a';
-   c.fillText(ftxt,300,388);
+   c.textAlign='right';c.fillText(ftxt,586,386);c.textAlign='left';
   }
  }
  // 对话气泡关掉后,仍可一键回看今天的聊天
