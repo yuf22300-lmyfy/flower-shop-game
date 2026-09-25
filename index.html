@@ -4259,22 +4259,19 @@ function wDrawCustomer(c,np){ // 窗口顾客:有立绘用立绘(卡在窗台),�
    // 视窗:sc2=0看最新;回看时整体后移
    if(sc2>0){var back=Math.min(sc2,ents2.length-1);if(back>0)ents2=ents2.slice(0,ents2.length-back)}
    // 面板几何:窗下整块(raw 296-652 × 306-545)
-   var px2=296,py2=306,pw2=356,ph2=239;
+   var px2=70,py2=306,pw2=820,ph2=239; // 横向拉长:几乎满视口宽
    // 字号阶梯:先大后小,塞下全部;实在多→尾部截断标记
-   var ladder=[[23,27],[20,23],[17,20],[15,18]];
-   var chosen=null,li2;
-   for(li2=0;li2<ladder.length;li2++){
-    var f2=ladder[li2][0],lh2=ladder[li2][1];
-    c.font=f2+'px KaiTi, STKaiti, serif';
-    var maxLn=Math.floor((ph2-20)/lh2);
-    var lines2=[],ai2,more=false;
-    for(ai2=0;ai2<ents2.length;ai2++){
-     var wl2=pxWrapLines(c,ents2[ai2].nm+':'+ents2[ai2].tx,pw2-30,9);
-     if(lines2.length+wl2.length>maxLn){more=true;break}
-     var wj2;for(wj2=0;wj2<wl2.length;wj2++)lines2.push({t:wl2[wj2],ent:ents2[ai2]});
-    }
-    if(!more||li2===ladder.length-1){chosen={f:f2,lh:lh2,lines:lines2,more:more,maxLn:maxLn};break}
+   var f2=23,lh2=27; // 字号恒定,不缩小
+   c.font=f2+'px KaiTi, STKaiti, serif';
+   var maxLn=Math.floor((ph2-20)/lh2);
+   var all2=[],ai2;
+   for(ai2=0;ai2<ents2.length;ai2++){
+    var wl2=pxWrapLines(c,ents2[ai2].nm+':'+ents2[ai2].tx,pw2-30,9);
+    var wj2;for(wj2=0;wj2<wl2.length;wj2++)all2.push({t:wl2[wj2],ent:ents2[ai2]});
    }
+   var more=all2.length>maxLn;
+   var lines2=more?all2.slice(all2.length-maxLn):all2;
+   var chosen={f:f2,lh:lh2,lines:lines2,more:more,maxLn:maxLn};
    // 指向立绘的小三角
    c.fillStyle='rgba(34,28,44,.95)';
    c.beginPath();c.moveTo(np.x-11,py2+1);c.lineTo(np.x+11,py2+1);c.lineTo(np.x,py2-12);c.closePath();c.fill();
@@ -5020,7 +5017,7 @@ function worldUI(c){
  WORLD.chatRect=null;
  if(WORLD.chat){
   // 交互区指向场景窗下气泡(视口坐标: raw 298-640/307-454 → 0.61缩放)
-  WORLD.chatRect={x:360,y:232,w:226,h:150}; // 场景窗下对话面板
+  WORLD.chatRect={x:226,y:232,w:504,h:150}; // 场景窗下对话面板
   var hist=WORLD.chatHist||[],sc=Math.max(0,Math.min(WORLD.chatScroll||0,Math.max(0,hist.length-1)));
   WORLD.chatScroll=sc;
   var disp=hist.length?hist[hist.length-1-sc]:{who:WORLD.chat.who,text:WORLD.chat.text};
