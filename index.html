@@ -2680,16 +2680,12 @@ function walkNodeGo(nd){
  WORLD.walk.visited=(WORLD.walk.visited||0)+1;
  S.walkMap[nd.id]=S.day;
  var stock=walkStockInit(nd);
- WORLD.walk.loot=stock.slice(); // 全部剩余物资都摆出来(滚轮查看/逐件取舍)
- WORLD.walk.takeIdx=WORLD.walk.loot.map(function(){return 1});
+ WORLD.walk.loot=stock.slice(); // 全部剩余物资摆出来(滚轮查看)
+ WORLD.walk.takeIdx=WORLD.walk.loot.map(function(){return 0}); // v2.0: 不自动装包——全部待选,玩家自己挑
  WORLD.walk.place={};WORLD.walk.listScroll=0;WORLD.walkDrag=null;
- WORLD.walk.pack=walkBagPackIdx();
- var la=WORLD.walk.pack.left,i3;
- for(i3=0;i3<WORLD.walk.loot.length;i3++){
-  if(la.indexOf(i3)>=0)WORLD.walk.takeIdx[i3]=0;
- }
- WORLD.walk.pack=walkBagPackIdx();
+ WORLD.walk.pack=walkBagPackIdx(); // 背包初始只有防辐射布
  narr(nd.d);
+ if(WORLD.on&&!TEST)bigToast('全部物资待选——点右侧物品装包,或按住拖进背包格');
  AU.dig();
 }
 function walkBagToggle(idx){ // 逐件取舍:点列表切换单件取/留;装不下只回弹这一件
@@ -6322,6 +6318,8 @@ function unitTests(){
   walkNodeGo(MAP_NODES[0]);
   var p0=S.parts;
   A('walk-visited',WORLD.walk.visited===1);
+  A('bag-empty-on-enter',WORLD.walk.takeIdx.every(function(v){return v===0})&&WORLD.walk.pack.placed.length===0); // 不自动装包
+  WORLD.walk.takeIdx[0]=1;WORLD.walk.pack=walkBagPackIdx(); // 玩家挑了第一件
   walkBagDone();
   A('walk-outing-end',!WORLD.walk&&S.clothDur===2&&S.flags.walkedDay===S.day&&S.parts>=p0);
   // 当天再出→被挡
