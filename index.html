@@ -5853,6 +5853,11 @@ function worldBoot(){
    var cellY=Math.max(0,Math.min(WALKBAG_H-1,Math.floor((p.y-gy0)/cs0)));
    if(!(cellX===0&&cellY===0)){ // (0,0)是布,不放
     if(!WORLD.walk.place)WORLD.walk.place={};
+    var fw=WALK_ITEM_FOOT[WORLD.walk.loot[idx]]||[1,1],busy=false,pg;
+    var cur=WORLD.walk.pack?WORLD.walk.pack.placed:[];
+    for(pg=0;pg<cur.length;pg++){var pb=cur[pg];
+     if(pb.srcIdx!==idx&&cellX<pb.x+pb.w&&cellX+fw[0]>pb.x&&cellY<pb.y+pb.h&&cellY+fw[1]>pb.y){busy=true;break}}
+    if(busy){bigToast('这个格子已经有东西了——先挪走它,再放新的');AU.click();return}
     WORLD.walk.takeIdx[idx]=1;
     WORLD.walk.place[idx]={x:cellX,y:cellY};
     var pk3=walkBagPackIdx();
