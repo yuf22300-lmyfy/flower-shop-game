@@ -1858,6 +1858,11 @@ function beatOK(cid,idx){
  if(cid==='baba'&&idx===2&&!S.flags.musicbox_fixed)return false;
  return true;
 }
+function talkFallback(cid,done){ // 戏份聊完:老朋友的日常来访(闲聊+交易)
+ var c=CUST[cid];
+ say(cid,pick(c.talk));
+ tradeOffer(cid,done);
+}
 function visitScene(cid,done){
  var c=CUST[cid],f=S.fav[cid];
  f.met=1;S.flags.beatAskedNone=false;
@@ -1865,8 +1870,8 @@ function visitScene(cid,done){
  var dEcho=diaryEcho(cid);
  if(dEcho&&!S.flags['dEcho_'+cid+'_'+S.day]){S.flags['dEcho_'+cid+'_'+S.day]=1;sys(dEcho.l)}
  var idx=f.seen;
- if(idx<6&&beatOK(cid,idx)){
-  var beat=c.beats[idx];
+ if(idx<Math.max(c.beats.length,1)&&beatOK(cid,idx)){
+  var beat=c.beats[idx];if(!beat){talkFallback(cid,done);return}
   WORLD._sayClue=beat.clue?1:0;
   say(cid,beat.open);
   WORLD._sayClue=0;
@@ -3824,6 +3829,7 @@ function worldInteractables(){
    L.push({x:890,y:498,r:115,label:'🛏️ 睡觉 · 迎接明天',act:function(){advance()}});
    if(S.pursue&&!S.ended)L.push({x:560,y:220,r:110,label:'🌅 朝西边走走',cls:'dark',act:function(){pursuitScene()}});
   }
+  L.push({x:858,y:372,r:0,rw:64,rh:18,label:'📖 花朵图鉴',act:function(){showHybridCodex();AU.click()}});
  }else{
   if(S.phase===0){
    L.push({x:740,y:392,r:115,label:'🌳 去废墟深处(一天一趟,一趟一个地方)',act:function(){
@@ -5946,11 +5952,12 @@ function worldBoot(){
   var VS=WORLD.VS||0.61,VOX=WORLD.VOX||184,VOY=WORLD.VOY||48;
   if(p.x>=184&&p.x<=776&&p.y>=34&&p.y<=390){
    var spx=(p.x-VOX)/VS,spy=(p.y-VOY)/VS;
-   var acts=worldInteractables();
+   var acts=worldInteractables(),hitA=null,hd2=1e9;
    for(i=0;i<acts.length;i++){var a=acts[i];
     var d=(a.x-spx)*(a.x-spx)+(a.y-spy)*(a.y-spy);
     var inh=a.rw?(Math.abs(spx-a.x)<=a.rw&&Math.abs(spy-a.y)<=a.rh):d<a.r*a.r*1.2;
-    if(inh){AU.click();a.act();return}}
+    if(inh&&d<hd2){hd2=d;hitA=a}}
+   if(hitA){AU.click();hitA.act();return}
    var strand=!(WORLD.menu&&WORLD.menu.length)&&$('modal').style.display==='none';
    for(i=0;i<WORLD.npcs.length;i++){var n=WORLD.npcs[i];
     if(n.arrived&&(!n.talking||(strand&&n._done))){
@@ -6407,8 +6414,9 @@ function visitAuto(cid){
  var c=CUST[cid],f=S.fav[cid];
  f.met=1;
  var idx=f.seen;
- if(idx<6&&beatOK(cid,idx)){
-  var beat=c.beats[idx];if(beat.clue)addClue(beat.clue);
+ if(idx<Math.max(c.beats.length,1)&&beatOK(cid,idx)){
+  var beat=c.beats[idx];if(!beat){say(cid,pick(c.talk));f.seen++;return}
+  if(beat.clue)addClue(beat.clue);
   var o=beat.opts[TT.n++%beat.opts.length];
   if(o.fav)favGain(cid,o.fav);if(o.atmo)atmoGain(o.atmo);if(o.flag)S.flags[o.flag]=1;
   if(o.clue)addClue(o.clue);if(o.frag)addFrag();
