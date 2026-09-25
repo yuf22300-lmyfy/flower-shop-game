@@ -791,7 +791,7 @@ pavel:{n:'米沙',t:'乐手 · 手指僵了的老朋友',w:['news','score','quip
  beats:[
  {open:'一个戴布帽的老头推门进来,肩上挎着一只旧风琴箱,皮带磨得发亮。他不看花,先听——听了一会儿,点头:"这屋子,音是好音。木头老,不吵。"(他把琴箱放下,拍拍)"来对了。"',
   opts:[
-   {t:'分享',say:'"坐下弹一段?"',close:'他摆摆手,从口袋里摸出一块布,把右手手指一根一根裹上——像给乐器上弦。"老了,指头僵。"他说,"但今天手痒。就一段。"他弹了八个音。八个音,你听出了雪化。',fav:2,atmo:2},
+   {t:'分享',say:'"坐下弹一段?"',close:'他摆摆手,从口袋里摸出一块布,把右手手指一根一根裹上——像给乐器上弦。"老了,指头僵。"他说,"但今天手痒。就一段。"他弹了八个音,很慢,很轻。"这是他以前最爱的八个音,"他说,"弹完,冬天就该过去了。"',fav:2,atmo:2},
    {t:'提问',say:'"您以前在这儿演出过?"',close:'"工俱乐部。五一,十一,三八节。"他掰着手指数,"那时候年轻,手指头听话,跑得比脑子快。"他看着自己的手指,"现在脑子还快,手指头退休了。它俩商量不到一块儿去。"',fav:1,frag:1},
    {t:'倾听',say:'你给他倒了水,坐在他旁边。',close:'他喝水,你俩都没说话。忽然他哼了一句什么,很短。他看你一眼:"耳朵不错,不问是什么歌。"你确实想问。他得意地笑了:"憋住,说明你有听众的耐心。这歌,唱全的,世界上不超过三个人。"',fav:1}]},
  {open:'他从琴箱夹层里,抽出一页纸——旧琴谱,纸边起了毛。谱子最后一个小节后面,空着一大片。"《路过》。"他说,"我自己写的。写了半辈子,就差最后一段。"',
@@ -1702,6 +1702,8 @@ function worldMorning(){AU.birds();
  worldDayBanner();
  WORLD.daySnap=JSON.stringify(S); // 晨间快照: 时间回溯用(当天重来)
  var th=0,i2;for(i2=0;i2<(S.pots||[]).length;i2++)if(S.pots[i2]&&S.pots[i2].pl&&!(S.pots[i2].w>0))th++;
+ // v2.0 晨间零件补给:抽屉缝里总有一枚(保证每天至少能修/猜一样)
+ if((S.parts||0)<1&&S.day<18){S.parts=1;narr('工作台的抽屉缝里,又摸出一枚旧零件。它好像总有一枚,等着你摆弄。')}
  // v2.0 宠物喂食:一份粮吃三天
  if(S.cat&&hasItem('catfood')&&!(S.petFed&&S.petFed.cat>=S.day)){removeItem('catfood',1);S.petFed=S.petFed||{};S.petFed.cat=S.day+2;atmoGain(1);narr('猫粮倒进小碟。它吃得很慢,吃完舔了舔爪子,冲你眨了下眼。(一份管三天)')}
  if(S.dog&&hasItem('dogfood')&&!(S.petFed&&S.petFed.dog>=S.day)){removeItem('dogfood',1);S.petFed=S.petFed||{};S.petFed.dog=S.day+2;atmoGain(1);narr('狗粮泡了水。它摇着尾巴吃完,把下巴搁在你脚背上,压得很实。(一份管三天)')}
@@ -2090,7 +2092,7 @@ function revealHybByTrade(){
  if(un.length===0)return;
  var h=un[ri(un.length)];
  S.knowHyb[h.c]=1;
- say('pavel','"哦,对了——补一条育种情报,就当学费的一部分:'+PLANTS[h.a].n+' × '+PLANTS[h.b].n+',能结出'+PLANTS[h.c].n+'。图鉴里替你记好了。"');
+ say('pavel','"哦,对了——补一条育种情报,就当学费的一部分:'+PLANTS[h.a].n+' × '+PLANTS[h.b].n+',能结出「'+PLANTS[h.c].n+'」——'+PLANTS[h.c].use+'。图鉴里替你记好了。"');
  gain('(杂交图鉴更新:'+knownHybCount()+'/14)');
 }
 function flowerListInBag(){
@@ -2268,6 +2270,7 @@ function tradeOffer(cid,done){
  render();CHOICE_REFRESH=render;
 }
 function finishVisit(cid,done){
+ if(WORLD&&WORLD.on&&!TEST){setTimeout(function(){if(WORLD.chat&&WORLD.chat.who===cid){WORLD.chat=null;WORLD.chatRect=null}},3800)}
  closeModal();
  if(S.storyteller&&rnd()<0.4){
   say(cid,'(离开前,他/她回头看了一眼这家小小的店。)');
@@ -2573,16 +2576,11 @@ var MAP_NODES=[
 var WALKBAG_W=5,WALKBAG_H=2; // 出行背包 5×2 = 10格(取舍感)
 var WALK_ITEM_FOOT={soil:[2,2],water:[2,2],parts:[1,1],seeds:[1,1],seed:[1,1],myst:[1,2],pot:[2,2],relic:[2,2],pencil:[1,2],cloth:[1,1],catfood:[1,1],dogfood:[1,1]};
 var WALK_ITEM_NAME={soil:'土壤',water:'净水罐',parts:'零件',seeds:'种子袋',seed:'种子袋',myst:'神秘种子',pot:'空花盆',relic:'待修旧物',pencil:'旧铅笔',cloth:'防辐射布',catfood:'猫粮',dogfood:'狗粮'};
-function walkNodeState(nd){ // 0=未探明(迷雾) 1=可去(重复进入) 3=可见但锁(明天开)
+function walkNodeState(nd){ // 0=未探明(迷雾) 1=可去(重复进入)
  var vd=S.walkMap[nd.id];
- if(vd)return 1; // v2.0: 去过的地点随时可以再去(物资按库存供应)
+ if(vd)return 1; // 去过的地点随时可以再去(物资按库存供应)
  if(!nd.req)return 1; // 起点恒开
- var i;for(i=0;i<nd.req.length;i++){
-  var d2=S.walkMap[nd.req[i]];
-  if(d2&&d2<S.day)return 1;   // 邻居是"之前的日子"去的 → 可去
- }
- // 迷雾可见性: 有邻居去过(含今天) → 显示名字但锁着
- for(i=0;i<nd.req.length;i++){if(S.walkMap[nd.req[i]])return 3} // 3=可见但锁(明天开)
+ var i;for(i=0;i<nd.req.length;i++){if(S.walkMap[nd.req[i]])return 1} // 邻居去过(任何一天)即可
  return 0;
 }
 function walkRollLoot(nd){
@@ -3209,7 +3207,7 @@ function scriptHook(){
  // 第二天: 米沙顺口告诉你柔刺棉的配方(防辐射布的来路,前三天必得)
  if(S.day>=2&&!S.flags.cottonHint&&!S.knowHyb.cotton){
   S.flags.cottonHint=1;S.knowHyb.cotton=1;
-  sys('米沙背着琴路过窗口,弹了两个音:「老伙计以前念叨过——多刺仙人掌×铁线蕨,能结出柔刺棉。防辐射的布,就打它身上来。」');
+  sys('米沙背着琴路过窗口,弹了两个音:「老伙计以前念叨过——多刺仙人掌×铁线蕨,能结出柔刺棉——每三天结一块防辐射布。布,就打它身上来。」');
   gain('(杂交图鉴解锁:多刺仙人掌×铁线蕨 → 柔刺棉)');refreshPanel();save();
  }
  // 矿工底座交付
@@ -3864,6 +3862,7 @@ function worldInteractables(){
  return L;
 }
 function worldNpcLeave(){WORLD.npcs=[];WORLD.queue=[];WORLD.chat=null;WORLD.chatRect=null}
+function worldEveningPrep(){if(WORLD.chat&&!(WORLD.npcs||[]).length){WORLD.chat=null;WORLD.chatRect=null}}
 function worldNoon(){AU.bell();
  if(S.weather==='fog'&&!hasPot('lant',2)){
   narr('辐射雾把街盖住了。这样的天,没人会出门——除了雾本身。');
@@ -5038,6 +5037,7 @@ function wPotCard(c,x,y,w,h,p,i,hov){
  var dry=!(p.w>0)&&(p.miss||0)>0;
  if(big){
   if(ready)wPill(c,cx,stB-12,'\u53ef\u91c7\u6458','#f9e7c0','#9a3f26');
+  if(dry){c.fillStyle='#d86a5a';c.font='bold 11px "Microsoft YaHei"';c.textAlign='right';c.fillText('\u7f3a\u6c34'+Math.min(9,p.miss||1),x+w-8,y+16);c.textAlign='center'}
   else if(mate)wPill(c,cx,stB-12,'\u53ef\u6388\u7c89','#e2ecd8','#4f7a55');
   else if(dry){c.fillStyle='#d86a5a';c.font='bold 10px "Microsoft YaHei"';c.fillText('\u7f3a\u6c34'+Math.min(9,p.miss)+'\u5929',cx,stB)}
   else if(p.tag){c.fillStyle='#e8a0b4';c.font='bold 11px "Microsoft YaHei"';c.fillText('\u300c'+p.tag+'\u300d',cx,stB)}
@@ -5598,7 +5598,7 @@ function worldTick(){
    c.fillStyle='#f2e9d8';c.font='bold 22px "Microsoft YaHei"';c.textAlign='center';
    c.fillText('散 步 地 图',480,52);
    c.fillStyle='rgba(160,148,126,.8)';c.font='13px "Microsoft YaHei"';
-   c.fillText('一天一趟,一趟去一个地方 · 去过的地点之后还能再来 · 🧵布 剩'+(S.clothDur||0)+'次',480,78);
+   c.fillText('一天一趟,一趟一个地方 · 去过相邻地点即可点亮新路 · 🧵布 剩'+(S.clothDur||0)+'次',480,78);
    // 连线(任一端已探明才画)
    var ni,nj,ni2;
    for(ni=0;ni<MAP_NODES.length;ni++)for(nj=0;nj<MAP_NODES.length;nj++){
@@ -5632,7 +5632,7 @@ function worldTick(){
     else{c.fillStyle='#e8c070';c.font='bold 12px "Microsoft YaHei"';c.fillText('出发',nd.x,nd.y+4)}
     c.fillStyle=visited?'#b3a48c':'#f2e9d8';
     c.font=(hov&&!visited?'bold ':'')+'13px "Microsoft YaHei"';
-    c.fillText(st===3?nd.n+'(明天解锁)':nd.n,nd.x,nd.y+42);
+    c.fillText(nd.n,nd.x,nd.y+42);
     // 去过的地点:名字下方列出还剩什么
     if(visited&&S.nodeStock&&S.nodeStock[nd.id]){
      var rem=S.nodeStock[nd.id],cnt={},r2;
@@ -6167,10 +6167,10 @@ function unitTests(){
   S=newState();S.testMode=true;S.day=1;S.walkMap={};
   A('fog-stop-open',walkNodeState(byId.stop)===1);
   A('fog-salon-hidden',walkNodeState(byId.salon)===0);
-  S.walkMap.stop=1; // 今天去了起点
-  A('fog-salon-todaylock',walkNodeState(byId.salon)===3);
+  S.walkMap.stop=1; // 去过起点
+  A('fog-salon-open',walkNodeState(byId.salon)===1);
   S.day=2;
-  A('fog-salon-nextday',walkNodeState(byId.salon)===1);
+  A('fog-salon-day2',walkNodeState(byId.salon)===1);
   S.walkMap.salon=2;
   A('fog-visited',walkNodeState(byId.salon)===1); // v2.0: 去过=可反复进入(状态1)
   S=s0});
@@ -6527,8 +6527,8 @@ function hybridCodexHtml(){
   if(S&&S.knowHyb&&S.knowHyb[h.c]){
    known++;
    rows+='<div style="display:flex;align-items:center;gap:10px;border-bottom:1px dashed #d9c9a8;padding:7px 0">'
-    +'<div style="flex:1"><b>'+PLANTS[h.a].n+' × '+PLANTS[h.b].n+'</b> → <b style="color:#a34a30">'+PLANTS[h.c].n+'</b>'
-    +'<div style="font-size:12px;color:#6f6250;line-height:1.5">作用:'+PLANTS[h.c].use+'</div></div>'
+    +'<div style="flex:1"><b style="font-size:16px;color:#f2e9d8">'+PLANTS[h.a].n+' × '+PLANTS[h.b].n+'</b> → <b style="color:#f0a878;font-size:16px">'+PLANTS[h.c].n+'</b>'
+    +'<div style="font-size:14px;color:#d8c8a8;line-height:1.6">作用:'+PLANTS[h.c].use+'</div></div>'
     +'<div style="color:#bd9245;font-size:12px;white-space:nowrap">'+PLANTS[h.c].r+'★</div></div>';
   }else{
    rows+='<div style="display:flex;align-items:center;gap:10px;border-bottom:1px dashed #d9c9a8;padding:7px 0;opacity:.55">'
