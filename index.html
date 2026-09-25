@@ -2660,12 +2660,12 @@ function walkEndOuting(){ // 结束这一趟:耗一次布耐久,标记今天出�
  updHud();refreshPanel();
  afterWalk();
 }
-function walkStockInit(nd){ // 地点物资池(持久): 首次到访生成9件,之后按剩余供应
+function walkStockInit(nd){ // 地点物资池(持久): 首次到访生成13件(必超背包,取舍常在),之后按剩余供应
  if(!S.nodeStock)S.nodeStock={};
  if(!S.nodeStock[nd.id]){
   var pool=[],i,st=[];
   for(i=0;i<nd.loot.length;i++)pool.push([nd.loot[i][0],nd.loot[i][1]]);
-  for(i=0;i<9;i++){
+  for(i=0;i<13;i++){
    var tw=0,j;for(j=0;j<pool.length;j++)tw+=pool[j][1];
    var r=rnd()*tw;
    for(j=0;j<pool.length;j++){r-=pool[j][1];if(r<=0){st.push(pool[j][0]);break}}
