@@ -2557,11 +2557,12 @@ function walkRollLoot(nd){
  }
  return out;
 }
-function walkBagPackIdx(){ // 按当前takeIdx装包: 返回 {placed:[{id,srcIdx,x,y,w,h}],left:[srcIdx...]}
+function walkBagPackIdx(){ // 按当前takeIdx装包: 防辐射布恒占(0,0)1格; 返回 {placed,left}
  var units=[],i;
  for(i=0;i<WORLD.walk.loot.length;i++){if(WORLD.walk.takeIdx[i])units.push({id:WORLD.walk.loot[i],srcIdx:i})}
  var grid=[],y,x;
  for(y=0;y<WALKBAG_H;y++){grid.push([]);for(x=0;x<WALKBAG_W;x++)grid[y][x]=0}
+ grid[0][0]=1; // 防辐射布随身占位
  var placed=[],left=[],i2;
  for(i2=0;i2<units.length;i2++){
   var id=units[i2].id,f=WALK_ITEM_FOOT[id]||[1,1],ok=false;
@@ -2576,7 +2577,8 @@ function walkBagPackIdx(){ // 按当前takeIdx装包: 返回 {placed:[{id,srcIdx
  return {placed:placed,left:left};
 }
 function walkScene(){
- // v2.0: 出门必备防辐射布(一块可用三次);地点可重复进入,每次出门耗一次布
+ // v2.0: 一天一趟;一趟内可走访多个地点;出门必备防辐射布(一块三次,占背包1格)
+ if(S.flags.walkedDay===S.day){narr('今天走过一趟了,鞋里的灰还没倒干净。明天再说。');return}
  if(!hasItem('cloth')){
   narr('你刚拉开门,风里的灰就扑了进来——带着咬人的细痒。不能就这么出去。');
   narr('(出门需要「防辐射布」:柔刺棉成熟后产出,或去雾林边缘/河边碰碰运气)');
@@ -2585,8 +2587,24 @@ function walkScene(){
  }
  if((S.clothDur||0)<1)S.clothDur=3; // 新布起用
  S.walks++;
- WORLD.walk={phase:'map',node:null,loot:[],takeIdx:[],pack:null};
+ WORLD.walk={phase:'map',node:null,loot:[],takeIdx:[],pack:null,visited:0};
  AU.click();
+}
+function walkEndOuting(){ // 结束这一趟:耗一次布耐久,标记今天出过门
+ if(!WORLD.walk)return;
+ if(WORLD.walk.visited>0){
+  S.flags.walkedDay=S.day;
+  S.clothDur=(S.clothDur||3)-1;
+  if(S.clothDur<=0){
+   removeItem('cloth',1);
+   if(WORLD.on&&!TEST)bigToast('🧵 一块防辐射布磨穿了');
+   if(hasItem('cloth'))S.clothDur=3;else S.clothDur=0;
+  }else if(WORLD.on&&!TEST)bigToast('🧵 防辐射布又薄了一层 · 剩'+S.clothDur+'次');
+ }
+ WORLD.walk=null;
+ AU.click();
+ updHud();refreshPanel();
+ afterWalk();
 }
 function walkStockInit(nd){ // 地点物资池(持久): 首次到访生成9件,之后按剩余供应
  if(!S.nodeStock)S.nodeStock={};
@@ -2605,6 +2623,7 @@ function walkStockInit(nd){ // 地点物资池(持久): 首次到访生成9件,�
 }
 function walkNodeGo(nd){
  WORLD.walk.phase='bag';WORLD.walk.node=nd;
+ WORLD.walk.visited=(WORLD.walk.visited||0)+1;
  S.walkMap[nd.id]=S.day;
  var stock=walkStockInit(nd);
  WORLD.walk.loot=stock.slice(0,5); // 本次翻到的前5件(其余留待下次)
@@ -2661,19 +2680,16 @@ function walkBagDone(){
  if(soilN)gotNames.push('土壤×'+soilN);if(waterN)gotNames.push('净水×'+waterN);if(partsN)gotNames.push('零件×'+partsN);
  if(seedN)gotNames.push('种子×'+seedN);if(mystN)gotNames.push('神秘种子×'+mystN);if(potN)gotNames.push('花盆×'+potN);if(relicN)gotNames.push('旧物');if(clothN2)gotNames.push('防辐射布×'+clothN2);
  if(gotNames.length)gotC('带回 · '+gotNames.join(' '),(WORLD.walk.node?WORLD.walk.node.n:''));
- // v2.0: 防辐射布耗一次耐久;磨穿自动换下一块
- S.clothDur=(S.clothDur||3)-1;
- if(S.clothDur<=0){
-  removeItem('cloth',1);
-  if(WORLD.on&&!TEST)bigToast('🧵 一块防辐射布磨穿了');
-  if(hasItem('cloth'))S.clothDur=3;else S.clothDur=0;
- }else if(WORLD.on&&!TEST)bigToast('🧵 防辐射布又薄了一层 · 剩'+S.clothDur+'次');
  var leaveN=WORLD.walk.loot.length-take.length;
- if(leaveN>0)narr('背包塞不下了,有'+leaveN+'样东西留在了'+(WORLD.walk.node?WORLD.walk.node.n:'')+'——下次来,它们还在。');
- if(nid&&S.nodeStock&&S.nodeStock[nid]&&S.nodeStock[nid].length===0)narr((WORLD.walk.node?WORLD.walk.node.n:'这里')+'能翻的都翻遍了。得让它歇一阵,或去别处看看。');
- WORLD.walk=null;
+ if(leaveN>0)narr('背包塞不下或没选的'+leaveN+'样,留在了'+(WORLD.walk.node?WORLD.walk.node.n:'')+'——下次来,它们还在。');
+ if(nid&&S.nodeStock&&S.nodeStock[nid]&&S.nodeStock[nid].length===0)narr((WORLD.walk.node?WORLD.walk.node.n:'这里')+'能翻的都翻遍了。');
  updHud();refreshPanel();
- afterWalk();
+ // 回到地图:一趟可继续走访下一处(含去过的);右上✕结束出门
+ var anyLeft=false,k2;
+ for(k2=0;k2<MAP_NODES.length;k2++){var stN=S.nodeStock?S.nodeStock[MAP_NODES[k2].id]:null;if(!stN||stN.length>0){anyLeft=true;break}}
+ WORLD.walk.phase='map';WORLD.walk.node=null;WORLD.walk.loot=[];WORLD.walk.takeIdx=[];
+ if(WORLD.on&&!TEST&&anyLeft)bigToast('🗺 这趟还可以再去一处 · 或点右上✕ 结束出门');
+ if(!anyLeft){walkEndOuting();return}
 }
 function pendingRelicAll(){
  var i,r;
@@ -3714,7 +3730,7 @@ function worldInteractables(){
   }
  }else{
   if(S.phase===0){
-   L.push({x:740,y:392,r:115,label:'🌳 去废墟深处(打开地图 · 可反复出门)',act:function(){
+   L.push({x:740,y:392,r:115,label:'🌳 去废墟深处(一天一趟,一趟可走访多处)',act:function(){
     AU.click();
     var _origAfter=afterWalk;
     afterWalk=function(){
@@ -5422,7 +5438,7 @@ function worldTick(){
    c.fillStyle='#f2e9d8';c.font='bold 22px "Microsoft YaHei"';c.textAlign='center';
    c.fillText('散 步 地 图',480,52);
    c.fillStyle='rgba(160,148,126,.8)';c.font='13px "Microsoft YaHei"';
-   c.fillText('出发前检查:🧵防辐射布 剩'+(S.clothDur||0)+'次 · 地点可反复进入,每次出门耗一次布',480,78);
+   c.fillText('一天一趟 · 一趟可走访多个地点 · 🧵防辐射布 剩'+(S.clothDur||0)+'次(占背包1格)',480,78);
    // 连线(任一端已探明才画)
    var ni,nj,ni2;
    for(ni=0;ni<MAP_NODES.length;ni++)for(nj=0;nj<MAP_NODES.length;nj++){
@@ -5472,7 +5488,7 @@ function worldTick(){
     if(st===1)WORLD.walkRects.push({x:nd.x-38,y:nd.y-30,w:76,h:60,go:nd});
    }
    c.fillStyle='rgba(160,148,126,.7)';c.font='13px "Microsoft YaHei"';
-   c.fillText('点亮中的地点可直接点击前往 · 右上 ✕ 关闭',870,528);
+   c.fillText('点亮的地点可前往(含去过的) · 右上✕结束出门,耗一次布',870,528);
    WORLD.walkClose={x:912,y:14,w:34,h:26};
   }else if(WORLD.walk.phase==='bag'){
    var nd2=WORLD.walk.node;
@@ -5489,8 +5505,19 @@ function worldTick(){
    for(gx2=0;gx2<=WALKBAG_W;gx2++){c.beginPath();c.moveTo(gx+gx2*cs,gy);c.lineTo(gx+gx2*cs,gy+WALKBAG_H*cs);c.stroke()}
    var pk=WORLD.walk.pack,pi3;
    WORLD.walkCellRects=[];
+   // 防辐射布:恒占(0,0)格,不可卸下
+   c.fillStyle='rgba(110,138,118,.55)';
+   c.fillRect(gx+2,gy+2,cs-4,cs-4);
+   c.strokeStyle='#7cc4a2';c.lineWidth=2;
+   c.strokeRect(gx+2,gy+2,cs-4,cs-4);
+   c.fillStyle='#e6f2e6';c.font='bold 11px "Microsoft YaHei"';c.textAlign='center';
+   c.fillText('防布',gx+cs/2,gy+cs/2-4);
+   c.fillStyle='#bfe0c8';c.font='10px "Microsoft YaHei"';
+   c.fillText('剩'+(S.clothDur||0),gx+cs/2,gy+cs/2+10);
+   WORLD.walkCellRects.push({x:gx+2,y:gy+2,w:cs-4,h:cs-4,cloth:true});
    for(pi3=0;pi3<pk.placed.length;pi3++){
     var it4=pk.placed[pi3];
+    if(it4.x===0&&it4.y===0)continue; // 不会发生(布占着),保险
     c.fillStyle='rgba(186,132,62,.5)';
     c.fillRect(gx+it4.x*cs+2,gy+it4.y*cs+2,it4.w*cs-4,it4.h*cs-4);
     c.strokeStyle='#e8c070';c.lineWidth=2;
@@ -5500,7 +5527,7 @@ function worldTick(){
     WORLD.walkCellRects.push({x:gx+it4.x*cs+2,y:gy+it4.y*cs+2,w:it4.w*cs-4,h:it4.h*cs-4,cell:it4});
    }
    c.fillStyle='rgba(160,148,126,.8)';c.font='12px "Microsoft YaHei"';c.textAlign='left';
-   c.fillText('5×2 出行背包(10格) · 点背包里的物品=放回 · 花盆2×2 土壤2×2 布剩'+(S.clothDur||0)+'次',gx,gy+WALKBAG_H*cs+26);
+   c.fillText('10格背包 · 🧵防辐射布占1格 · 点物品=放回',gx,gy+WALKBAG_H*cs+26);
    // 右侧物品取舍列表
    var lx=440,ly=100,li3;
    WORLD.walkRects=[];
@@ -5530,7 +5557,7 @@ function worldTick(){
    c.fillStyle='rgba(122,108,72,.95)';wRoundRect(c,lx,ly+24,400,44,10);c.fill();
    c.strokeStyle='#e8c070';c.lineWidth=2;wRoundRect(c,lx,ly+24,400,44,10);c.stroke();
    c.fillStyle='#f2e9d8';c.font='bold 16px "Microsoft YaHei"';c.textAlign='center';
-   c.fillText('背包收好,回店',lx+200,ly+52);
+   c.fillText('收好,继续看地图',lx+200,ly+52);
   }
   if(WORLD.walk.phase==='map'){
    c.fillStyle='rgba(60,50,40,.95)';wRoundRect(c,912,14,34,26,6);c.fill();
@@ -5657,23 +5684,11 @@ function worldBoot(){
    for(wc3=0;wc3<(WORLD.walkCellRects||[]).length;wc3++){var wc=WORLD.walkCellRects[wc3];
     if(p.x>=wc.x&&p.x<=wc.x+wc.w&&p.y>=wc.y&&p.y<=wc.y+wc.h){cellHit=wc;break}}
    if(cellHit){
-    // 找到该格对应的第几件(同id逐件匹配:数到该格序号的那件)
-    var idc=cellHit.cell.id,seq=-1,si;
-    for(si=0;si<WORLD.walk.loot.length;si++){
-     if(WORLD.walk.loot[si]===idc&&WORLD.walk.takeIdx[si]){seq++;}
-    }
-    // 逐格计数:该物品的第k件在装着的第cellSeq块——重算:遍历装着的同id物品序号
-    var kth=-1,kseen=0;
-    for(si=0;si<WORLD.walk.loot.length;si++){
-     if(WORLD.walk.loot[si]===idc&&WORLD.walk.takeIdx[si]===1){
-      if(kseen===cellHit.cell.k){kth=si;break}
-      kseen++;
-     }
-    }
-    if(kth<0){ // cell.k 未记录时:关掉最早装着的一件
-     for(si=0;si<WORLD.walk.loot.length;si++){if(WORLD.walk.loot[si]===idc&&WORLD.walk.takeIdx[si]===1){kth=si;break}}
-    }
-    if(kth>=0){WORLD.walk.takeIdx[kth]=0;
+    if(cellHit.cloth){AU.click();bigToast('🧵 防辐射布得随身带着——外面全靠它');return}
+    // cell.srcIdx 直连那一件(打包时已记录)
+    var kth=cellHit.cell.srcIdx;
+    if(kth!=null&&WORLD.walk.takeIdx[kth]===1){
+     WORLD.walk.takeIdx[kth]=0;
      WORLD.walk.pack=walkBagPackIdx();
      AU.click();
     }
@@ -5685,7 +5700,7 @@ function worldBoot(){
      else if(wr.toggle!==undefined){walkBagToggle(wr.toggle)}
      return}}
    if(WORLD.walk.phase==='map'&&WORLD.walkClose&&p.x>=WORLD.walkClose.x&&p.x<=WORLD.walkClose.x+WORLD.walkClose.w&&p.y>=WORLD.walkClose.y&&p.y<=WORLD.walkClose.y+WORLD.walkClose.h){
-    WORLD.walk=null;AU.click();return}
+    walkEndOuting();return}
    if(WORLD.walk.phase==='bag'&&WORLD.walkBack&&p.x>=WORLD.walkBack.x&&p.x<=WORLD.walkBack.x+WORLD.walkBack.w&&p.y>=WORLD.walkBack.y&&p.y<=WORLD.walkBack.y+WORLD.walkBack.h){
     walkBagDone();return}
    return}
@@ -5970,7 +5985,7 @@ function unitTests(){
   A('bag-tight',walkBagPackIdx().left.length===1); // 两只2×2花盆=8格,2×2土=4>10→留1
   WORLD.walk.loot=[];WORLD.walk.takeIdx=[];var q;for(q=0;q<300;q++){WORLD.walk.loot.push('parts');WORLD.walk.takeIdx.push(1)}
   var r2=walkBagPackIdx();
-  A('bag-overflow',r2.left.length>0&&r2.placed.length===WALKBAG_W*WALKBAG_H);
+  A('bag-overflow',r2.left.length>0&&r2.placed.length===WALKBAG_W*WALKBAG_H-1); // 布占1格
   A('bag-foot-pot',(WALK_ITEM_FOOT.pot[0]*WALK_ITEM_FOOT.pot[1])===4);
   A('bag-10cells',WALKBAG_W*WALKBAG_H===10);
   WORLD.walk=null;
@@ -6080,27 +6095,38 @@ function unitTests(){
   var first=worldMaybeTutorial();
   A('world-tut-first',!!first);
   A('world-tut-once',worldMaybeTutorial()===null)});
- T('walk-once',function(){function walkScene2ok(){if(!hasItem('cloth'))addItem('cloth',1);walkScene();var ok=WORLD.walk&&WORLD.walk.phase==='map';WORLD.walk=null;return ok}S=newState();S.testMode=true;WORLD.scene='street';WORLD.walked=false;S.phase=0;
-  S.inv=[{id:'cloth',q:1}];S.clothDur=3; // v2.0 出门必备防辐射布
+ T('walk-once',function(){S=newState();S.testMode=true;WORLD.scene='street';S.phase=0;S.flags={};
+  S.inv=[{id:'cloth',q:1}];S.clothDur=3;
   var L1=worldInteractables(),f1=null,q;
   for(q=0;q<L1.length;q++)if(String(L1[q].label).indexOf('废墟深处')>=0)f1=L1[q];
   A('walk-hot-first',!!f1);
-  // 没布→被挡;有布→开图
   S.inv=[];f1.act();
   A('walk-blocked-no-cloth',!WORLD.walk);
   S.inv=[{id:'cloth',q:1}];S.clothDur=0;
   f1.act();
   A('walk-map-open',WORLD.walk&&WORLD.walk.phase==='map'&&S.clothDur===3);
-  // 模拟走完一个点回店:耐久-1
-  WORLD.walk={phase:'bag',node:MAP_NODES[0],loot:['parts'],takeIdx:[1],pack:walkBagPackIdx()};
+  // 走一个点:回地图(一趟可继续),不耗布
+  walkNodeGo(MAP_NODES[0]);
   var p0=S.parts;
+  A('walk-visited',WORLD.walk.visited===1);
   walkBagDone();
-  A('walk-loot-got',S.parts>p0);
-  A('walk-cloth-worn',S.clothDur===2); // 3-1=2
-  A('walk-repeat',walkScene2ok());
-  var L2=worldInteractables(),f2=null;
-  A('walk-repeat-hot',true)});
- T('world-box',function(){S=newState();S.testMode=true;WORLD.scene='shop';S.phase=2;
+  A('walk-back-to-map',WORLD.walk&&WORLD.walk.phase==='map'&&S.clothDur===3&&S.parts>=p0);
+  // 同趟再走一处(重复进入)
+  walkNodeGo(MAP_NODES[0]);
+  walkBagDone();
+  A('walk-second-node',WORLD.walk&&WORLD.walk.visited===2);
+  // 结束出门:耗一次布+当天封门
+  walkEndOuting();
+  A('walk-outing-end',!WORLD.walk&&S.clothDur===2&&S.flags.walkedDay===S.day);
+  // 再出→被挡
+  f1.act();
+  A('walk-once-per-day',!WORLD.walk);
+  // 布占格:9格可用
+  WORLD.walk={phase:'bag',node:MAP_NODES[0],loot:['parts','parts','parts','parts','parts','parts','parts','parts','parts','parts'],takeIdx:[1,1,1,1,1,1,1,1,1,1],visited:1};
+  var pk2=walkBagPackIdx();
+  A('bag-cloth-cell',pk2.placed.length===9&&pk2.left.length===1);
+  WORLD.walk=null});
+T('world-box',function(){S=newState();S.testMode=true;WORLD.scene='shop';S.phase=2;
   var L2=worldInteractables(),bi=null,q;
   for(q=0;q<L2.length;q++)if(String(L2[q].label).indexOf('旧物箱')>=0)bi=L2[q];
   A('world-box-found',!!bi);
