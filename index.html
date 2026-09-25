@@ -2129,8 +2129,9 @@ function tradeOffer(cid,done){
  var c=CUST[cid],i,offer=null,itemId=null;
  if(!S.giftToday)S.giftToday={};
  if(!S.tradeToday[cid]){
-  for(i=0;i<c.w.length;i++){itemId=hasCat(c.w[i]);if(itemId){break}}
+  for(i=0;i<c.w.length;i++){itemId=hasCat(c.w[i]);if(itemId&&!(itemId==='hankie'&&cid!=='anna')){break}if(itemId==='hankie'&&cid!=='anna'){itemId=null}}
   if(itemId)offer=itemId;
+  if(cid==='anna'&&hasItem('hankie')&&!S.flags.hankieGiven)offer='hankie'; // 安娜:手帕的主人,有它就最想要它
  }
  var wtxt=c.w.map(wantName).join('/');
  var render=function(){
@@ -2218,9 +2219,20 @@ function tradeOffer(cid,done){
    return;
   }
   if(k==='trade'){
+   if(offer==='hankie'&&cid==='anna'){
+    meSay('你把那方绣着В的手帕,轻轻放在她面前。');
+    say(cid,SPECIAL_GIFT.hankie.anna);
+    removeItem('hankie',1);S.flags.hankieGiven=1;
+    favGain('anna',3);atmoGain(3);
+    dark('针脚很密。她认得这针法——就像认得自己的半生。');
+    gotC('手帕,回到了主人手里','安娜 · 三十年前绣下的名字');
+    refreshPanel();save();
+    setChoices('她把手帕贴在胸口,站了很久。',[{h:'目送对方离开',k:'bye'}],function(){finishVisit(cid,done)});
+    return;
+   }
    if(offer==='hankie'&&cid!=='anna'){
     if(S.flags['hankieRef_'+cid]===S.day){narr('你想起TA把手帕推回来的样子。还是先收着吧——它认人。');save();render();return}
-    S.flags['hankieRef_'+cid]=S.day;
+    S.flags['hankieRef_'+cid]=S.day;S.flags.hankieRefused=1;
     if(SPECIAL_GIFT.hankie[cid])say(cid,SPECIAL_GIFT.hankie[cid]);
     else say(cid,pick(['(TA看了看那方手帕,轻轻推了回来)"东西是好东西——但它认人,不是我。"','(TA摇头,把手帕往你这边推了推)"你收好。它在等它的主人。"']));
     narr('你把手帕收了回来。它好像还在等它真正的主人。');
