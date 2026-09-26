@@ -3894,7 +3894,7 @@ function worldInteractables(){
  return L;
 }
 function worldNpcLeave(){WORLD.npcs=[];WORLD.queue=[];WORLD.chat=null;WORLD.chatRect=null}
-function worldEveningPrep(){if(WORLD.chat&&!(WORLD.npcs||[]).length){WORLD.chat=null;WORLD.chatRect=null}}
+function worldEveningPrep(){var nT=!(WORLD.npcs||[]).length||!WORLD.npcs.some(function(n3){return n3.talking});if(WORLD.chat&&nT){WORLD.chat=null;WORLD.chatRect=null}}
 function worldNoon(){AU.bell();
  if(S.weather==='fog'&&!hasPot('lant',2)){
   narr('辐射雾把街盖住了。这样的天,没人会出门——除了雾本身。');
