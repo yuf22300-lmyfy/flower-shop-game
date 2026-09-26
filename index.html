@@ -5162,29 +5162,20 @@ function worldUI(c){
   var disp=hist.length?hist[hist.length-1-sc]:{who:WORLD.chat.who,text:WORLD.chat.text};
   var fullTxt=String(disp.text);
   if(sc===0&&WORLD.chat.shown!=null)fullTxt=fullTxt.slice(0,WORLD.chat.shown); // 打字机逐字
-  // 有立绘顾客在窗前时,台词由场景气泡负责;me/sys/无立绘→兜底盒画在场景同一位置
+  // 有立绘顾客在窗前时,台词由场景气泡负责;无立绘→灰胶囊(系统/我/顾客台词统一);绿盒已删
   var hasWinCid=false,ni3;
   for(ni3=0;ni3<(WORLD.npcs||[]).length;ni3++){var nw3=WORLD.npcs[ni3];
    if(nw3.winMode&&window.CHAR_IMG&&CHAR_IMG[nw3.cid]&&CHAR_IMG[nw3.cid].ok){hasWinCid=true;break}}
   if(!hasWinCid&&fullTxt.length){
    var fbx=310,fby=246,fbw=360;
-   if(disp.who==='sys'){ // 系统/旁白: 居中灰胶囊
-    c.font='15px KaiTi, STKaiti, serif';
-    var sl2=pxWrapLines(c,fullTxt,340,5);
-    var sbh=sl2.length*22+14;
-    c.fillStyle='rgba(30,26,40,.86)';wRoundRect(c,fbx,Math.min(fby,388-sbh),fbw,sbh,10);c.fill();
-    c.fillStyle='rgba(232,214,182,.92)';c.textAlign='center';
-    for(i=0;i<sl2.length;i++)c.fillText(sl2[i],fbx+fbw/2,Math.min(fby,388-sbh)+22+i*22);
-    c.textAlign='left';
-   }else{ // 我说的话: 绿边盒+「你:」前缀
-    c.font='15px KaiTi, STKaiti, serif';
-    var ml2=pxWrapLines(c,'你:'+fullTxt,340,6);
-    var mbh=ml2.length*20+14;
-    c.fillStyle='rgba(42,52,46,.94)';wRoundRect(c,fbx,Math.min(fby,386-mbh),fbw,mbh,12);c.fill();
-    c.strokeStyle='rgba(110,150,125,.6)';c.lineWidth=1.4;wRoundRect(c,fbx,Math.min(fby,386-mbh),fbw,mbh,12);c.stroke();
-    c.fillStyle='#d2e4d8';c.textAlign='left';
-    for(i=0;i<ml2.length;i++)c.fillText(ml2[i],fbx+14,Math.min(fby,386-mbh)+22+i*20);
-   }
+   c.font='15px KaiTi, STKaiti, serif';
+   var pre3=disp.who==='me'?'你:':(disp.who!=='sys'&&CUST[disp.who]?CUST[disp.who].n+':':'');
+   var sl2=pxWrapLines(c,pre3+fullTxt,340,5);
+   var sbh=sl2.length*22+14;
+   c.fillStyle='rgba(30,26,40,.86)';wRoundRect(c,fbx,Math.min(fby,388-sbh),fbw,sbh,10);c.fill();
+   c.fillStyle='rgba(232,214,182,.92)';c.textAlign='center';
+   for(i=0;i<sl2.length;i++)c.fillText(sl2[i],fbx+fbw/2,Math.min(fby,388-sbh)+22+i*22);
+   c.textAlign='left';
   }
   // 小提示行(盒下方)
   c.fillStyle='rgba(160,140,90,.75)';c.font='11px "Microsoft YaHei"';c.textAlign='left';
