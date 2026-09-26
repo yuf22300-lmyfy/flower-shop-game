@@ -766,7 +766,7 @@ ivan:{n:'消防员',t:'消防员 · 手会抖的人',w:['salt','water','cloth'],
  {open:'一个肩膀很宽的男人推门,肩膀撞了一下门框——不是门窄,是他的手在抖,没扶稳。他在柜台前站定,两只手拢在一起,让自己停下来。"讨口水。"他说,声音很低,"谢谢。"',
   opts:[
    {t:'倒水',say:'你倒了水,用双手递过去——和他的姿势一样。',close:'他看了你一眼,眼里有点意外,又有点感激。他用两只手接,喝得很慢,很稳,一滴没洒。"你知道吗。"他忽然说,"端水这件事,我练了半辈子。刚入队那会儿,单手能端两桶。"',need:'waterres',fav:1,atmo:1},
-   {t:'提问',say:'"您的手……"',close:'"病的。"他坦然地说,不回避,"医生说,神经的事,治不好,只能处。"他把双手摊开给你看——很稳的手掌,抖的是指尖,"处着处着,也就处成朋友了。它抖它的,我干我的。"',fav:1},
+   {t:'提问',say:'"您的手……"',close:'"病的。"他坦然地说,不回避,"医生说,神经的事,治不好——但可以跟它过下去。"他把双手摊开给你看——很稳的手掌,抖的是指尖,"它抖它的,我干我的。时间长了,就当是个老毛病朋友。"',fav:1},
    {t:'倾听',say:'你什么也没问,只是又给他续了水。',close:'他捧着第二杯,站了一会儿,忽然说:"你这店,门口的灯是好灯。"他指了指,"灯罩厚,风吹不灭。我们那时候,进火场前,先看灯——灯还亮着,就说明里面还有电,还能救。"',fav:1,frag:1}]},
  {open:'"那天夜里的铃,"他没头没尾地说,"我一辈子都在听。"他的手停在柜台上,"不是这边店里的铃。是那种——大的,铁的,撕开夜的。铃一响,靴子先进裤子,人再进靴子。三十秒,车必须出库。"',
   opts:[
@@ -1611,7 +1611,7 @@ function favGain(cid,n){
  var lv0=f.lv;
  while(f.lv<7&&f.pts>=f.lv*3){
   f.pts-=f.lv*3;f.lv++;
-  if(f.lv===3){S.parts+=2;gain(CUST[cid].n+'硬塞给你两枚零件当谢礼。')}
+  if(f.lv===3){S.parts+=2;gain(CUST[cid].n+'硬塞给你两枚零件当谢礼。');gotC('获得 · 零件 ×2',CUST[cid].n+'的谢礼');AU.chime()}
   if(f.lv===7){
    var g=GIFTS[cid];if(g){addItem(cid+'_gift',1);gain('【 Lv.7 羁绊】'+CUST[cid].n+'把'+g.n+'留在了你手里:"放在你这儿,我才放心。"')}
   }
@@ -1754,13 +1754,21 @@ function morningActionsMenu(){
  if(S.storyteller)acts.push({h:'给上午的客人讲个故事',s:'把真相编成寓言(+氛围)',tag:'讲述',k:'story',d:S.flags.didStory});
  setChoices('早晨 · 想做什么都行(上午不会过去);准备好了点「🔔 开门营业」迎客',acts,function(k){doAction(k)});
 }
-function workbenchMenu(){ // 工作台专属菜单
+function workbenchMenu(){ // 工作台专属菜单(一天只用一次)
  var acts=[],pend=pendingRelic();
+ if(S.flags.didWorkbench===S.day){
+  narr('今天在工作台前已经忙过一阵了——手上的茧还热着。明天再来。');
+  return;
+ }
  acts.push({h:'修旧物',s:pend?('零件×1 · 待修:'+TOOLD[pend.id].n):'手边没有待修的旧物(出门散步找找)',tag:'工作台',k:'fix',d:!pend||S.parts<1});
  if(S.parts>=2)acts.push({h:'修一修镇上的东西',s:'零件×2 · 长椅、秋千、路灯……让废土软一点(+氛围)',tag:'工作台',k:'fixtown'});
  if(S.parts>=1&&partPuzzlesLeft()>0)acts.push({h:'摆弄零件,猜猜它能变成什么',s:'零件×1 · 猜对:变成该物件(每样仅一次) · 猜错:散架消失',tag:'工作台',k:'partpuzzle'});
  acts.push({h:'先不修了',k:'noop'});
- setChoices('工作台 · 台面摊着工具和零件(随便修,上午不会过去)',acts,function(k){if(k==='noop'){WORLD.menu=[];return}doAction(k)});
+ setChoices('工作台 · 台面摊着工具和零件(今天只有一上午的功夫)',acts,function(k){
+  if(k==='noop'){WORLD.menu=[];return}
+  S.flags.didWorkbench=S.day; // 无论选哪项,今天的工作台到此为止
+  doAction(k);
+ });
 }
 function doAction(k){
  if(k==='water'){if(waterAll()){};wDoneMorning();return}
@@ -2535,19 +2543,35 @@ function nightLamp(){
  if(WORLD.on&&!TEST){
   WORLD.npcs.push({cid:pick,x:466,y:230,tx:466,ty:230,arrived:true,talking:false,ph:rnd()*6,winMode:true,_pAt:Date.now()});
   /* v2.0: 夜客留下,可点击聊天(好感可升);清晨自动清场 */ }
- setTimeout(function(){
-  say(pick,'(夜色里,TA循着灯光走到窗前)"这么晚还亮着灯——太好了。我就是……想看看,灯还亮着。这里,还开着。"');
+ // v2.0: 夜客停在窗前,点击TA开始完整对话(好感可升);对话结束自动送礼
+ if(WORLD.on&&!TEST){
   setTimeout(function(){
-   say(pick,'(临走,TA在柜上放下一小袋东西)"顺路捎的。给还醒着的人。灯别熄。明晚,我还来。"');
+   say(pick,'(夜色里,TA循着灯光走到窗前)"这么晚还亮着灯——太好了。我就是……想看看,灯还亮着。这里,还开着。"');
+   bigToast('🌙 '+g.n+'循灯而来 · 点击TA聊聊');
+  },1400);
+  // 礼物挂在对话结束时:给TA的done回调里送
+  var _origFinish=finishVisit;
+  finishVisit=function(cid2,done2){
+   if(cid2===pick){
+    if(g.g.water)S.water+=g.g.water;
+    if(g.g.parts)S.parts+=g.g.parts;
+    if(g.g.seeds)S.seeds+=g.g.seeds;
+    if(g.g.atmo)atmoGain(g.g.atmo);
+    gotC('夜客回礼 · '+g.gt,g.n+' 临走留下');
+    AU.chime();
+    finishVisit=_origFinish;
+   }
+   _origFinish(cid2,done2);
+  };
+ }else{
+  setTimeout(function(){
+   say(pick,'(夜色里,TA循着灯光走到窗前)"这么晚还亮着灯——太好了。"');
    if(g.g.water)S.water+=g.g.water;
    if(g.g.parts)S.parts+=g.g.parts;
    if(g.g.seeds)S.seeds+=g.g.seeds;
    if(g.g.atmo)atmoGain(g.g.atmo);
-   bigToast('🌙 '+g.n+'循灯而来 · '+g.gt);
-   gotC('夜客 · '+g.n,g.gt);
-   updHud();save();
-  },2600);
- },1400);
+  },1400);
+ }
  atmoGain(1);
  wDoneEve('灯亮着,夜有人来');
 }
@@ -3836,7 +3860,7 @@ function worldInteractables(){
   if(S.phase===0){
    L.push({x:560,y:271,r:0,rw:46,rh:17,label:(S.weather==='fog'&&!hasPot('lant',2))?'🔔 开门营业(今天有雾)':'🔔 开门营业',act:function(){endMorning()}});
    L.push({x:190,y:250,r:120,label:'🚪 出门(打开废墟地图)',act:function(){if(S.phase===0){walkScene()}else{worldSet('street');AU.click()}}});
-   L.push({x:810,y:330,r:120,label:'🛠️ 工作台(修东西)',act:function(){workbenchMenu()}});
+   L.push({x:810,y:330,r:120,label:S.flags.didWorkbench===S.day?'🛠️ 工作台(今天忙过了)':'🛠️ 工作台(修东西)',act:function(){workbenchMenu()}});
    L.push({x:858,y:372,r:0,rw:62,rh:17,label:'📖 花朵图鉴',act:function(){showHybridCodex();AU.click()}});
    if(S.cat)L.push({x:676,y:254,r:60,label:S.flags.didCat?('🐈 '+(S.catName||'猫')+'梳过了,正打盹'):('🐈 给'+(S.catName||'猫')+'梳毛'),act:function(){brushCat()}});
   }else if(S.phase===1){
