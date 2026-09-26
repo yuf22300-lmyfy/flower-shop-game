@@ -3109,13 +3109,21 @@ function tellStory(){
 }
 function partPuzzlesLeft(){var n=0,k;for(k=0;k<PARTPUZZLES.length;k++)if(!S.flags['pp_'+PARTPUZZLES[k].id])n++;return n}
 function partPuzzle(){
- S.parts-=1;updHud();
+ // v2.0: 先让玩家挑零件(看描述选),再猜是什么
  var avail=[],k;
  for(k=0;k<PARTPUZZLES.length;k++){var pz=PARTPUZZLES[k];
   if(S.flags['pp_'+pz.id])continue;
   avail.push(pz)}
  if(!avail.length){narr('能修的零件,你都修过一遍了。剩下的铁屑,就当给炉子攒柴。');save();wDoneMorning();return}
- var p=avail[ri(avail.length)];
+ var pickOpts=[];
+ for(k=0;k<avail.length;k++)(function(pz2){
+  pickOpts.push({h:pz2.look,s:'看描述挑一枚 · 猜对做成该物,猜错散架',tag:'挑零件',f:function(){partPuzzleGo(pz2)}});
+ })(avail[k]);
+ pickOpts.push({h:'不猜了,收起来',tag:'返回',f:function(){WORLD.menu=[];workbenchMenu()}});
+ setChoices('挑一枚零件来摆弄——(今天只有这一枚的功夫)',pickOpts,null);
+}
+function partPuzzleGo(p){
+ S.parts-=1;updHud();
  var order=[0,1,2].sort(function(){return rnd()-0.5}),opts=[],m;
  for(m=0;m<3;m++){var oi=order[m];opts.push({h:p.opts[oi],tag:'猜测',k:oi})}
  setChoices('你捏着这枚零件端详了很久:'+p.look+'。它的形状,像是——(猜对:变成该物,每样只会做成一次 · 猜错:零件散架)',opts,function(kk){
@@ -5162,21 +5170,7 @@ function worldUI(c){
   var disp=hist.length?hist[hist.length-1-sc]:{who:WORLD.chat.who,text:WORLD.chat.text};
   var fullTxt=String(disp.text);
   if(sc===0&&WORLD.chat.shown!=null)fullTxt=fullTxt.slice(0,WORLD.chat.shown); // 打字机逐字
-  // 有立绘顾客在窗前时,台词由场景气泡负责;无立绘→灰胶囊(系统/我/顾客台词统一);绿盒已删
-  var hasWinCid=false,ni3;
-  for(ni3=0;ni3<(WORLD.npcs||[]).length;ni3++){var nw3=WORLD.npcs[ni3];
-   if(nw3.winMode&&window.CHAR_IMG&&CHAR_IMG[nw3.cid]&&CHAR_IMG[nw3.cid].ok){hasWinCid=true;break}}
-  if(!hasWinCid&&fullTxt.length){
-   var fbx=310,fby=246,fbw=360;
-   c.font='15px KaiTi, STKaiti, serif';
-   var pre3=disp.who==='me'?'你:':(disp.who!=='sys'&&CUST[disp.who]?CUST[disp.who].n+':':'');
-   var sl2=pxWrapLines(c,pre3+fullTxt,340,5);
-   var sbh=sl2.length*22+14;
-   c.fillStyle='rgba(30,26,40,.86)';wRoundRect(c,fbx,Math.min(fby,388-sbh),fbw,sbh,10);c.fill();
-   c.fillStyle='rgba(232,214,182,.92)';c.textAlign='center';
-   for(i=0;i<sl2.length;i++)c.fillText(sl2[i],fbx+fbw/2,Math.min(fby,388-sbh)+22+i*22);
-   c.textAlign='left';
-  }
+  // 对话只显示窗下宽面板(wDrawCustomer),此处不再画兜底盒(避免重复)
   // 小提示行(盒下方)
   c.fillStyle='rgba(160,140,90,.75)';c.font='11px "Microsoft YaHei"';c.textAlign='left';
   c.fillText(sc>0?('↑ 已回看'+sc+'条 · 点击回最新'):'滚轮看更早 · 点面板关闭',356,386);
