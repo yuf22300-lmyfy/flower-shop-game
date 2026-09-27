@@ -3868,7 +3868,7 @@ function worldInteractables(){
   }else if(S.phase===2){
    L.push({x:317,y:336,r:105,label:S.flags.diaryToday?'📒 今天的日记写完了':'📒 柜台 · 写日记',act:function(){if(S.flags.diaryToday){narr('本子已经合上了。同一天写两遍,字会重影的。')}else{writeDiary()}}});
    L.push({x:700,y:356,r:105,label:S.flags.didBox?'📦 今天翻过了':'📦 翻旧物箱',act:function(){boxScene()}});
-   L.push({x:470,y:220,r:115,label:S.flags.didSunset?'🌇 今天看过夕阳了':'🌇 门口看夕阳',act:function(){sunset()}});
+   L.push({x:190,y:392,r:105,label:S.flags.didSunset?'🌇 今天看过夕阳了':'🌇 门口看夕阳',act:function(){sunset()}});
    if(has(S.unlocked,'lampPost'))L.push({x:190,y:150,r:95,label:S.flags.didLamp?'🏮 灯亮着,夜有人来':'🏮 留一盏灯(夜间营业)',act:function(){nightLamp()}});
    L.push({x:890,y:498,r:115,label:'🛏️ 睡觉 · 迎接明天',act:function(){advance()}});
    if(S.pursue&&!S.ended)L.push({x:560,y:220,r:110,label:'🌅 朝西边走走',cls:'dark',act:function(){pursuitScene()}});
