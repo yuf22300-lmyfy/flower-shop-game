@@ -1661,6 +1661,7 @@ function weatherLine(w){
  return pool[i];
 }
 function startDay(){
+ if(S.day===1)S.weather='clear'; // 第1天固定晴天
  S.phase=0;S.weather=S.baro||weatherRoll();S.baro=null;
  S.tradeToday={};S.negoToday=0;S.negoBonus={};S.dayT={picks:0,trade:0};S.visitors=null;
  if(S.weather==='rain')rainFill();
@@ -1704,11 +1705,11 @@ function worldMorning(){AU.birds();
  var th=0,i2;for(i2=0;i2<(S.pots||[]).length;i2++)if(S.pots[i2]&&S.pots[i2].pl&&!(S.pots[i2].w>0))th++;
  // v2.0 晨间零件补给:抽屉缝里总有一枚(保证每天至少能修/猜一样)
  if((S.parts||0)<1&&S.day<18){S.parts=1;narr('工作台的抽屉缝里,又摸出一枚旧零件。它好像总有一枚,等着你摆弄。')}
- // v2.0 宠物喂食:一份粮吃三天
- if(S.cat&&hasItem('catfood')&&!(S.petFed&&S.petFed.cat>=S.day)){removeItem('catfood',1);S.petFed=S.petFed||{};S.petFed.cat=S.day+2;atmoGain(1);narr('猫粮倒进小碟。它吃得很慢,吃完舔了舔爪子,冲你眨了下眼。(一份管三天)')}
- if(S.dog&&hasItem('dogfood')&&!(S.petFed&&S.petFed.dog>=S.day)){removeItem('dogfood',1);S.petFed=S.petFed||{};S.petFed.dog=S.day+2;atmoGain(1);narr('狗粮泡了水。它摇着尾巴吃完,把下巴搁在你脚背上,压得很实。(一份管三天)')}
- if(S.cat&&!(S.petFed&&S.petFed.cat>=S.day))narr('猫在碗边转了两圈——碗空了。它没叫,只是看着你。(出门也许能翻到猫粮)');
- if(S.dog&&!(S.petFed&&S.petFed.dog>=S.day))narr('狗把空碗拱到你脚边。(出门也许能翻到狗粮)');
+ // v2.0 宠物喂食:每天必喂;一份粮吃三天;连续3天不喂→离开
+ if(S.cat&&hasItem('catfood')&&!(S.petFed&&S.petFed.cat>=S.day)){removeItem('catfood',1);S.petFed=S.petFed||{};S.petFed.cat=S.day+2;S.flags.catHungry=0;atmoGain(1);narr('猫粮倒进小碟。它吃得很慢,吃完舔了舔爪子,冲你眨了下眼。(一份管三天)')}
+ else if(S.cat&&!(S.petFed&&S.petFed.cat>=S.day)){S.flags.catHungry=(S.flags.catHungry||0)+1;narr('猫在碗边转了两圈——碗空了。它没叫,只是看着你。(第'+S.flags.catHungry+'天没喂了;出门翻猫粮,或修镇上东西有人送)');if(S.flags.catHungry>=3){S.cat=false;narr('猫不见了。碗还在,但它走了。它没等你。');atmoGain(-2)}}
+ if(S.dog&&hasItem('dogfood')&&!(S.petFed&&S.petFed.dog>=S.day)){removeItem('dogfood',1);S.petFed=S.petFed||{};S.petFed.dog=S.day+2;S.flags.dogHungry=0;atmoGain(1);narr('狗粮泡了水。它摇着尾巴吃完,把下巴搁在你脚背上,压得很实。(一份管三天)')}
+ else if(S.dog&&!(S.petFed&&S.petFed.dog>=S.day)){S.flags.dogHungry=(S.flags.dogHungry||0)+1;narr('狗把空碗拱到你脚边,尾巴摇得很低。(第'+S.flags.dogHungry+'天没喂了)');if(S.flags.dogHungry>=3){S.dog=false;narr('早晨,狗不在了。台阶上只有一圈压平了的灰——它等过你,但它太饿了。');atmoGain(-2)}}
  bigToast(th?('⚠ 有'+th+'盆花渴了——先浇水,别让它们等('+(S.weather==='rain'?'雨天会自动浇透':'点左栏花盆浇水')+')'):'🌤 早晨 · 浇花/出门/修东西都可以;准备好了点「🔔 开门营业」迎客');
 }
 function rewindDay(){ // 时间回溯: 回到今天清晨
@@ -2430,12 +2431,15 @@ function sunset(){
    });
    return;
   }
-  if(r<0.10){out.push(pick(pool));atmoGain(1)}
-  else if(r<0.40){
+  if(r<0.05){out.push(pick(pool));atmoGain(1)}
+  else if(r<1.01){ // v2.0: 看夕阳必得一件物资
    var lr=rnd();
-   if(lr<0.4){S.parts+=1;gain('霞光斜进一堆瓦砾,你看见一点金属的反光——零件×1。');gotC('获得 · 零件 ×1','霞光里的反光')}
-   else if(lr<0.7){S.seeds+=1;gain('墙缝里,一粒种子挂在枯藤上,被夕阳照得透亮。种子+1。');gotC('获得 · 种子 ×1','被夕阳照得透亮')}
-   else if(lr<0.85){S.water+=1;gain('断墙后一只旧水罐,接了半罐还干净的水。净水+1。');gotC('获得 · 净水 ×1','断墙后的旧水罐')}
+   if(lr<0.22){S.parts+=1;gain('霞光斜进一堆瓦砾,你看见一点金属的反光——零件×1。');gotC('获得 · 零件 ×1','霞光里的反光')}
+   else if(lr<0.40){S.soil=(S.soil||0)+1;gain('塌了半边的花坛里,土还是活的那一层。土壤+1。');gotC('获得 · 土壤 ×1','夕阳晒过的活土')}
+   else if(lr<0.52){addItem('catfood',1);gain('谁家窗台上落着一小袋猫粮——猫的,先替它收着。');gotC('获得 · 猫粮 ×1','窗台上的')}
+   else if(lr<0.64){addItem('dogfood',1);gain('台阶下压着一小袋狗粮。台阶上的爪印,还很新。');gotC('获得 · 狗粮 ×1','台阶下的')}
+   else if(lr<0.82){S.seeds+=1;gain('墙缝里,一粒种子挂在枯藤上,被夕阳照得透亮。种子+1。');gotC('获得 · 种子 ×1','被夕阳照得透亮')}
+   else if(lr<1.01){S.water+=1;gain('断墙后一只旧水罐,接了半罐还干净的水。净水+1。');gotC('获得 · 净水 ×1','断墙后的旧水罐')}
    else{S.myst+=1;gain('砖缝深处,一粒种子在暮色里微微发亮——神秘种子+1。');gotC('获得 · 神秘种子 ×1','在暮色里微微发亮')}
    atmoGain(1);updHud();
   }
@@ -2598,7 +2602,7 @@ var MAP_NODES=[
   loot:[['soil',35],['parts',30],['water',35]],relic:1,edge:1}
 ];
 var WALKBAG_W=5,WALKBAG_H=2; // 出行背包 5×2 = 10格(取舍感)
-var WALK_ITEM_FOOT={soil:[2,2],water:[2,2],parts:[1,1],seeds:[1,1],seed:[1,1],myst:[1,2],pot:[2,2],relic:[2,2],pencil:[1,2],cloth:[1,1],catfood:[1,1],dogfood:[1,1]};
+var WALK_ITEM_FOOT={soil:[1,1],water:[2,2],parts:[1,1],seeds:[1,1],seed:[1,1],myst:[1,2],pot:[2,2],relic:[2,2],pencil:[1,2],cloth:[1,1],catfood:[1,1],dogfood:[1,1]};
 var WALK_ITEM_NAME={soil:'土壤',water:'净水罐',parts:'零件',seeds:'种子袋',seed:'种子袋',myst:'神秘种子',pot:'空花盆',relic:'待修旧物',pencil:'旧铅笔',cloth:'防辐射布',catfood:'猫粮',dogfood:'狗粮'};
 function walkNodeState(nd){ // 0=未探明(迷雾) 1=可去(重复进入)
  var vd=S.walkMap[nd.id];
@@ -2687,7 +2691,7 @@ function walkStockInit(nd){ // 地点物资池(持久): 首次到访生成13件(
  if(!S.nodeStock[nd.id]){
   var pool=[],i,st=[];
   for(i=0;i<nd.loot.length;i++)pool.push([nd.loot[i][0],nd.loot[i][1]]);
-  for(i=0;i<13;i++){
+  for(i=0;i<16;i++){
    var tw=0,j;for(j=0;j<pool.length;j++)tw+=pool[j][1];
    var r=rnd()*tw;
    for(j=0;j<pool.length;j++){r-=pool[j][1];if(r<=0){st.push(pool[j][0]);break}}
@@ -3201,7 +3205,7 @@ function fixTown(){
   var f=TOWNFIX[ri(TOWNFIX.length)];
   narr(f.l);
   var tfr=rnd();
-  if(tfr<0.22){addItem('cloth',1);if((S.clothDur||0)<1)S.clothDur=3;gotC('回礼 · 防辐射布 ×1','受助的人凑出的一块布')}
+  if(tfr<0.35){addItem('cloth',1);if((S.clothDur||0)<1)S.clothDur=3;gotC('回礼 · 防辐射布 ×1','受助的人凑出的一块布')}
   else if(tfr<0.42){addItem('catfood',1);gotC('回礼 · 猫粮 ×1','有猫人家的心意')}
   else if(tfr<0.62){addItem('dogfood',1);gotC('回礼 · 狗粮 ×1','有狗人家的心意')}
   else if(tfr<0.82){S.seeds+=1;gotC('回礼 · 种子 ×1','不知谁家窗台结的')}
@@ -3236,6 +3240,7 @@ function scriptHook(){
  if(S.day===4&&!S.flags.anc2){S.flags.anc2=1;sys('老太太离开时,替她提篮子的那个女人在屋檐下站了一会儿——就是提醒你浇水的那个。她没进来,只是朝店里望了一眼。')}
  if(S.day===5&&!S.flags.anc3){S.flags.anc3=1;sys('清晨,门口放着一小束紫罗兰,茎剪得整整齐齐。没有署名。你把它们插进了柜台上的水罐。');atmoGain(1)}
  if(S.day===3&&!S.cat){catArrival();return true}
+ if(S.day>=2&&!S.dog){S.dog=true;narr('早晨推门,一只瘦得只剩骨架的狗趴在台阶上。它抬起头看你——不是讨食的眼神,是等人的眼神。你开了罐水放在它面前。它喝完了,没走,把下巴搁在了你脚背上。(它决定留下来)');atmoGain(2);gotC('🐕 狗来了 · 它在等一个人','每天出门可以带上它;傍晚回来它会摇尾巴')}
  // 第二天: 米沙顺口告诉你柔刺棉的配方(防辐射布的来路,前三天必得)
  if(S.day>=2&&!S.flags.cottonHint&&!S.knowHyb.cotton){
   S.flags.cottonHint=1;S.knowHyb.cotton=1;
@@ -6087,7 +6092,7 @@ function unitTests(){
   b.className=keep;
   A('tier-keep-classes',ok1&&ok2)});
  T('sunset-rates',function(){var src=sunset.toString();
-  A('sunset-rates',src.indexOf('r<0.10')>=0&&src.indexOf('r<0.40')>=0&&src.indexOf('r<0.75')>=0&&src.indexOf('r<0.95')>=0)});
+  A('sunset-rates',src.indexOf('r<0.05')>=0&&src.indexOf('r<1.01')>=0)});
  T('sunset-dusk',function(){var ss=sunset.toString(),ws=wDrawStreet.toString(),wsn=worldSet.toString();
   A('sunset-dusk',ss.indexOf('WORLD.dusk=true')>=0&&ws.indexOf('WORLD.dusk')>=0&&ws.indexOf('#584a72')>=0&&wsn.indexOf("sc!=='street'")>=0)});
  T('awake-table',function(){
@@ -6200,7 +6205,7 @@ function unitTests(){
   var r1=walkBagPackIdx();
   A('bag-fits',r1.left.length===0&&r1.placed.length===3);
   WORLD.walk.loot=['pot','pot','soil'];WORLD.walk.takeIdx=[1,1,1];
-  A('bag-tight',walkBagPackIdx().left.length===1); // 两只2×2花盆=8格,2×2土=4>10→留1
+  A('bag-tight',walkBagPackIdx().left.length===0); // v2.0: soil1×1, 2pot+soil=恰好9格
   WORLD.walk.loot=[];WORLD.walk.takeIdx=[];var q;for(q=0;q<300;q++){WORLD.walk.loot.push('parts');WORLD.walk.takeIdx.push(1)}
   var r2=walkBagPackIdx();
   A('bag-overflow',r2.left.length>0&&r2.placed.length===WALKBAG_W*WALKBAG_H-1); // 布占1格
