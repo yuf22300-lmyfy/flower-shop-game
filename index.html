@@ -1661,8 +1661,8 @@ function weatherLine(w){
  return pool[i];
 }
 function startDay(){
- if(S.day===1)S.weather='clear'; // 第1天固定晴天
  S.phase=0;S.weather=S.baro||weatherRoll();S.baro=null;
+ if(S.day===1)S.weather='clear'; // 第1天固定晴天(在roll之后覆盖)
  S.tradeToday={};S.negoToday=0;S.negoBonus={};S.dayT={picks:0,trade:0};S.visitors=null;
  if(S.weather==='rain')rainFill();
  var wtxt=weatherLine(S.weather);
