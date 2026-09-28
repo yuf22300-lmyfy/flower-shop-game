@@ -1384,8 +1384,8 @@ function narr(t){msg(esc(t),'narr')}
 function sys(t){msg(esc(t),'sys')}
 function meSay(t){if(WORLD&&WORLD.on&&!TEST){WORLD.chatHist=WORLD.chatHist||[];WORLD.chatHist.push({who:'me',text:t});if(WORLD.chatHist.length>40)WORLD.chatHist.shift();WORLD.chatScroll=0;WORLD.chat={who:'me',text:t,at:Date.now(),shown:0,_ty:0};return}msg('<span class="who">你</span>'+esc(t),'me')}
 function gain(t){msg(esc(t),'gain');AU.click()}
-function gotC(txt,sub){ // 任何获得 → 屏幕中央绿卡(名字+说明)
- if(WORLD&&WORLD.on&&!TEST){WORLD.verdict={ok:1,text:txt,sub:sub||'',at:Date.now()}}
+function gotC(txt,sub,gline){ // 任何获得 → 屏幕中央绿卡(名字+说明+获得行)
+ if(WORLD&&WORLD.on&&!TEST){WORLD.verdict={ok:1,text:txt,sub:sub||'',gain:gline||'',at:Date.now()}}
 }
 function dark(t){msg(esc(t),'dark');AU.dark()}
 function who(cid){return '<span class="who" style="background:'+CUST[cid].col+'">'+CUST[cid].n+'</span>'}
@@ -1455,7 +1455,10 @@ function addItem(id,q){q=q||1;var i;
   S.inv[i].q+=q;refreshPanel();updHud();tryRefreshChoices();return true}
  if(invCount()+q>S.invCap){gain('背包满了。你只好把多出来的东西拆成零件收好。(+零件×'+q+')');S.parts+=q;refreshPanel();updHud();return false}
  var meta2=ITEMS[id]||GIFTS[id.replace('_gift','')];
- if(WORLD&&WORLD.on&&!TEST&&meta2)bigToast('🆕 获得新物品:「'+meta2.n+'」');
+ if(WORLD&&WORLD.on&&!TEST&&meta2){
+  if(WORLD.verdict&&Date.now()-WORLD.verdict.at<900){WORLD.verdict.at=Date.now()}
+  else{gotC('收入背包 · '+meta2.n+' ×'+q,'')}
+ }
  S.inv.push({id:id,q:q});refreshPanel();updHud();tryRefreshChoices();return true}
 function hasCat(cat){var i;for(i=0;i<S.inv.length;i++){var it=ITEMS[S.inv[i].id];if(it&&it.cat===cat&&S.inv[i].q>0)return S.inv[i].id}return null}
 function removeItem(id,q){q=q||1;var i;for(i=0;i<S.inv.length;i++)if(S.inv[i].id===id){S.inv[i].q-=q;if(S.inv[i].q<=0)S.inv.splice(i,1);refreshPanel();updHud();tryRefreshChoices();return true}return false}
@@ -2564,7 +2567,8 @@ function sunset(){
    if(fev.rew.atmo)atmoGain(fev.rew.atmo);
    if(fev.rew.seeds){S.seeds+=fev.rew.seeds}
    if(fev.rew.parts){S.parts+=fev.rew.parts}
-   gotC('花之偶遇 · '+fev.h,fev.sub);
+   var feg=[];if(fev.rew.atmo)feg.push('氛围+'+fev.rew.atmo);if(fev.rew.seeds)feg.push('种子×'+fev.rew.seeds);if(fev.rew.parts)feg.push('零件×'+fev.rew.parts);
+   gotC('花之偶遇 · '+fev.h,fev.sub,'获得：'+feg.join(' · '));
    updHud();
    setChoices('天边的最后一线亮色,沉下去了。',[{h:'搬椅子回店里',k:'back'}],function(k){
     worldSet('shop');AU.click();save();updHud();wDoneEve('天黑了');
@@ -5442,10 +5446,12 @@ function worldUI(c){
   var vk=WORLD.verdict.ok;
   var va=Math.min(1,(2600-(now-WORLD.verdict.at))/500);c.globalAlpha=va;
   var vsub=WORLD.verdict.sub||'';
+  var vgain=WORLD.verdict.gain||'';
   c.font='bold 19px "Microsoft YaHei"';
   var vtw=Math.max(c.measureText(WORLD.verdict.text).width+130,vsub?c.measureText(vsub).width+96:0);
-  var vx=480-vtw/2,vy=vsub?158:168;
-  var vh=vsub?84:64;
+  if(vgain)vtw=Math.max(vtw,c.measureText(vgain).width+96);
+  var vx=480-vtw/2,vy=(vsub||vgain)?158:168;
+  var vh=vgain?(vsub?108:84):(vsub?84:64);
   c.save();c.translate(480,vy+32);c.scale(va<1?(1+(1-va)*0.06):1,va<1?(1+(1-va)*0.06):1);c.translate(-480,-(vy+32));
   c.fillStyle=vk?'rgba(42,66,52,.96)':'rgba(80,42,38,.96)';
   wRoundRect(c,vx,vy,vtw,vh,14);c.fill();
@@ -5461,6 +5467,8 @@ function worldUI(c){
   c.fillText(WORLD.verdict.text,vx+70,vsub?vy+34:vy+39);
   if(vsub){c.fillStyle=vk?'#b8d8b0':'#d8bcae';c.font='14px KaiTi, STKaiti, serif';
    c.fillText(vsub,vx+70,vy+58)}
+  if(vgain){c.fillStyle='#e8c070';c.font='bold 14px "Microsoft YaHei"';
+   c.fillText(vgain,vx+70,vsub?vy+82:vy+58)}
   c.restore();c.globalAlpha=1;
  }
  // ===== 覆盖层(记录/对话回放) · 右侧停靠面板 =====
