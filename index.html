@@ -5569,7 +5569,11 @@ function worldLoop(ts){
 }
 function worldTick(){
  if(INTRO.active){introRender(c);return}
- if(!WORLD.on)return;
+ if(!WORLD.on){
+  // 守卫: 引子已结束但world未开启(异常恢复)
+  if(!INTRO.active&&S&&S.day>=1&&!S.ended){WORLD.on=true;document.body.classList.add("world-on")}
+  else return;
+ }
  WORLD.t+=0.016;var wxN=S?S.weather:'';if(wxN!==WORLD._wx){WORLD._wx=wxN;if(wxN==='rain')AU.rainOn();else AU.rainOff();if(wxN==='fog')AU.windOn();else AU.windOff();}
  var bi2;for(bi2=0;bi2<WORLD.butterflies.length;bi2++){var bf=WORLD.butterflies[bi2];
   bf.x=480+Math.sin(WORLD.t*bf.s1+bi2*2.1)*380;
