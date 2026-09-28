@@ -5567,7 +5567,7 @@ function worldUI(c){
 }
 function worldLoop(ts){
  WORLD.lastFrame=Date.now();
- if(WORLD.on)worldTick();
+ if(WORLD.on||INTRO.active)worldTick();
  requestAnimationFrame(worldLoop);
 }
 function worldTick(){
