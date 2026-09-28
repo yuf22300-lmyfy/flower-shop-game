@@ -352,13 +352,13 @@ body.log-open #logDrawer{transform:translateX(0)}
 /* ================= 引子系统: 7场景慢转场 · 逐行文字 · 环境音 · 可跳过 ================= */
 var INTRO={
  scenes:[
-  {bg:'#050408',lines:['白。','很长的白。'],snd:'heartbeat',dur:6000},
-  {bg:'#0a0812',lines:['嘀。','嘀。嘀。','有什么东西,在数着什么。'],snd:'monitor',dur:7000},
-  {bg:'#100e1a',lines:['风,从很远的地方吹过来。','风里有一声很轻的铃。'],snd:'chime',dur:6000},
-  {bg:'#121020',lines:['铃的下面,是一条安静的街。','街的尽头,有一扇门。','门缝里,有光。'],snd:'wind',dur:7000},
-  {bg:'#161226',lines:['门里,有一只猫。','它看了你一眼,又看了一眼窗台。','窗台上,有一盆花。'],snd:'cat',dur:7000},
-  {bg:'#1a162c',lines:['水,滴在叶子上。','一滴,一滴。','叶子很绿。'],snd:'water',dur:6000},
-  {bg:'#1e1a32',lines:['这里有一家花店。','你是这里的人。','你不记得,自己是谁。'],snd:'heartbeat',dur:8000}
+  {bg:'#050408',lines:['白。','很长的白。'],snd:'heartbeat',dur:2500},
+  {bg:'#0a0812',lines:['嘀。','嘀。嘀。','有什么东西,在数着什么。'],snd:'monitor',dur:3000},
+  {bg:'#100e1a',lines:['风,从很远的地方吹过来。','风里有一声很轻的铃。'],snd:'chime',dur:2500},
+  {bg:'#121020',lines:['铃的下面,是一条安静的街。','街的尽头,有一扇门。','门缝里,有光。'],snd:'wind',dur:3000},
+  {bg:'#161226',lines:['门里,有一只猫。','它看了你一眼,又看了一眼窗台。','窗台上,有一盆花。'],snd:'cat',dur:3000},
+  {bg:'#1a162c',lines:['水,滴在叶子上。','一滴,一滴。','叶子很绿。'],snd:'water',dur:2500},
+  {bg:'#1e1a32',lines:['这里有一家花店。','你是这里的人。','你不记得,自己是谁。'],snd:'heartbeat',dur:3500}
  ],
  idx:0,lineIdx:0,active:false,skipRect:null
 };
@@ -391,7 +391,7 @@ function introLines(sc){
  INTRO._lineT=setTimeout(function(){
   INTRO.lineIdx++;
   introLines(sc);
- },2000);
+ },800);
 }
 function introNextScene(){
  INTRO.idx++;
@@ -481,10 +481,13 @@ function introRender(c){
  c.font='13px "Microsoft YaHei"';
  c.fillStyle='rgba(120,112,130,.45)';
  c.textAlign='right';
- c.fillText('跳过',940,24);
+ c.fillText('跳过引子',940,24);
  c.strokeStyle='rgba(120,112,130,.25)';c.lineWidth=1;
  c.strokeRect(906,10,42,22);
- INTRO.skipRect={x:906,y:10,w:42,h:22};
+ INTRO.skipRect={x:880,y:10,w:68,h:22};
+ c.textAlign='center';c.fillStyle='rgba(140,132,150,.5)';c.font='12px "Microsoft YaHei"';
+ c.fillText((INTRO.idx+1)+' / '+INTRO.scenes.length+' · 点击画面继续',480,530);
+ c.textAlign='left';
  c.textAlign='left';
 }
 
@@ -6052,7 +6055,7 @@ function worldBoot(){
   if(!WORLD.on)return;
   var p=wXY(e);
   WORLD.hx=p.x;WORLD.hy=p.y;
-  if(INTRO.active&&INTRO.skipRect&&p.x>=INTRO.skipRect.x&&p.x<=INTRO.skipRect.x+INTRO.skipRect.w&&p.y>=INTRO.skipRect.y&&p.y<=INTRO.skipRect.y+INTRO.skipRect.h){introSkip();return}
+  if(INTRO.active){introNextScene();return}
   // 散步地图/背包 overlay(最高优先)
   if(WORLD.walk){
    // 先测背包格:点已装物品=放回(单件)
