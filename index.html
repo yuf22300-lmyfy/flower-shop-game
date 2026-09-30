@@ -1,7 +1,11 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1a1626">
 <title>废土花店日记</title>
 <style>
 :root{
@@ -135,6 +139,8 @@ body.shop4{--line:#c2a86f;--gold:#caa14e;--bg:#f2e6cc}
   pointer-events:none;z-index:3;line-height:1.5;display:none}
 body.world-on #left{position:relative}
 body.intro-on #hdr,body.intro-on #tools,body.intro-on #storyBox,body.intro-on #choices,body.intro-on #logDrawer,body.intro-on #side,body.intro-on #panelToggle,body.intro-on #worldHint{display:none!important}
+#rotHint{position:fixed;top:calc(10px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:220;background:rgba(30,26,40,.92);color:#f0e8d8;border:1px solid rgba(232,192,112,.55);border-radius:999px;padding:8px 18px;font:14px "Microsoft YaHei";display:none;pointer-events:none;white-space:nowrap}
+#rotHint.show{display:block}
 body.world-on #hdr,body.world-on #tools,body.world-on #storyBox,body.world-on #choices,
 body.world-on #logDrawer,body.world-on #worldHint,body.world-on #bigToast{display:none!important}
 body.world-on #main{gap:0}
@@ -320,7 +326,7 @@ body.log-open #logDrawer{transform:translateX(0)}
         <canvas id="world"></canvas>
         <div id="joy" style="display: none;"><div id="joyKnob"></div></div>
         <button id="btnAct2" type="button" style="display: none;">互动</button>
-        <div id="worldHint" style="display: block;">🎯 早晨 · 点花架浇花/采摘;准备就绪后点「🔔 开门营业」迎客(也可以先出门/修东西)</div>
+        <div id="rotHint">↻ 横过来玩,体验更好</div><div id="worldHint" style="display: block;">🎯 早晨 · 点花架浇花/采摘;准备就绪后点「🔔 开门营业」迎客(也可以先出门/修东西)</div>
       </div>
       <div id="storyBox" style="display:none"></div>
       <div id="choices"><div class="tip">……</div></div>
@@ -3999,6 +4005,17 @@ function worldResize(){
  if(window.innerHeight>200)s=Math.min(s,(window.innerHeight-24)/WORLD.H);
  cv.width=Math.round(WORLD.W*s);cv.height=Math.round(WORLD.H*s);
  cv.style.width=cv.width+'px';cv.style.height=cv.height+'px';
+ updRotHint();
+}
+var _rotT=null;
+function updRotHint(){
+ var el=document.getElementById('rotHint');if(!el)return;
+ var portrait=window.innerHeight>window.innerWidth*1.15;
+ var live=(WORLD&&WORLD.on)||(typeof INTRO!=='undefined'&&INTRO.active);
+ if(portrait&&live&&!(typeof TEST!=='undefined'&&TEST)){
+  el.classList.add('show');
+  clearTimeout(_rotT);_rotT=setTimeout(function(){el.classList.remove('show')},4000);
+ }else el.classList.remove('show');
 }
 function wXY(e){ // 屏幕事件→世界坐标
  var cv=$('world'),r=cv.getBoundingClientRect();
