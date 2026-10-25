@@ -6264,6 +6264,7 @@ function worldBoot(){
 var TEST=false,TT={n:0},REPORT={errors:[],runs:[]};
 function selfTest(){
  TEST=true;AU.mute=true;
+ try{var tb=document.createElement('div');tb.style.cssText='position:fixed;top:0;left:0;right:0;z-index:9999;background:#7a3a35;color:#fff;font:14px "Microsoft YaHei";text-align:center;padding:6px';tb.textContent='\u2699 自动测试运行中\u2014\u2014本页不是游戏画面, 请勿在此页游玩';document.body.appendChild(tb)}catch(e){}
  window.onerror=function(m,u,l){REPORT.errors.push(m+' @'+l)};
  var _msg=msg;msg=function(){};var _dm=daymark;daymark=function(){};
  var _art=artMsg;artMsg=function(){};
